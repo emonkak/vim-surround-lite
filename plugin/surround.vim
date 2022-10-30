@@ -24,6 +24,55 @@ if !exists('g:surround_objects')
   \ }
 endif
 
+let s:KEY_NOTATION_TABLE = {
+\   '|': '<Bar>',
+\   '\\': '<Bslash>',
+\   '<': '<Lt>',
+\   ' ': '<Space>',
+\ }
+
+function! s:define_text_objects(kind) abort
+  for [key, value] in items(g:surround_objects)
+    let [head, tail] = value
+    let lhs = printf('<Plug>(surround-textobj-%s:%s)',
+    \                a:kind,
+    \                escape(key, '|'))
+    if head ==# tail
+      let rhs = printf(':<C-u>call surround#textobj_between_%s(%s)<CR>',
+      \                a:kind,
+      \                string(escape(head, '|')))
+    else
+      let rhs = printf(':<C-u>call surround#textobj_around_%s(%s, %s)<CR>',
+      \                a:kind,
+      \                string(escape(head, '|')),
+      \                string(escape(tail, '|')))
+    endif
+    execute 'vnoremap <silent>' lhs rhs
+    execute 'onoremap <silent>' lhs rhs
+  endfor
+endfunction
+
+function! s:define_default_key_mappings() abort
+  nmap ys  <Plug>(surround-operator-add)
+
+  nnoremap cs  <Nop>
+  nnoremap ds  <Nop>
+
+  for key in keys(g:surround_objects)
+    let textobj = '<Plug>(surround-textobj-a:' . escape(key, '|')  . ')'
+    execute 'nmap'
+    \       ('cs' . s:key_notattion_from_char(key))
+    \       ('<Plug>(surround-operator-change)'. textobj)
+    execute 'nmap'
+    \       ('ds' . s:key_notattion_from_char(key))
+    \       ('<Plug>(surround-operator-delete)' . textobj)
+  endfor
+endfunction
+
+function! s:key_notattion_from_char(c)
+  return get(s:KEY_NOTATION_TABLE, a:c, a:c)
+endfunction
+
 nnoremap <expr> <Plug>(surround-operator-add)
 \               surround#operator_n('surround#operator_add')
 vnoremap <expr> <Plug>(surround-operator-add)
@@ -42,57 +91,10 @@ vnoremap <expr> <Plug>(surround-operator-delete)
 \               surround#operator_v('surround#operator_delete')
 onoremap <Plug>(surround-operator-delete)  g@
 
-let s:KEY_NOTATTION_TABLE = {
-\   '|': '<Bar>',
-\   '\\': '<Bslash>',
-\   '<': '<Lt>',
-\   ' ': '<Space>',
-\ }
+call s:define_text_objects('a')
+call s:define_text_objects('i')
 
-function! s:to_key_notation(c)
-  return get(s:KEY_NOTATTION_TABLE, a:c, a:c)
-endfunction
-
-function! s:define_text_objects() abort
-  for [key, value] in items(g:surround_objects)
-    let [head, tail] = value
-    let lhs = '<Plug>(surround-textobj:' . escape(key, '|') . ')'
-    if head ==# tail
-      let rhs = ':<C-u>call surround#textobj_between('
-      \       . string(escape(head, '|'))
-      \       . ')<CR>'
-    else
-      let rhs = ':<C-u>call surround#textobj_around('
-      \       . string(escape(head, '|'))
-      \       . ', '
-      \       . string(escape(tail, '|'))
-      \       . ')<CR>'
-    endif
-    execute 'vnoremap <silent>' lhs rhs
-    execute 'onoremap <silent>' lhs rhs
-  endfor
-endfunction
-
-function! s:define_default_key_mappings() abort
-  nmap ys  <Plug>(surround-operator-add)
-
-  nnoremap cs  <Nop>
-  nnoremap ds  <Nop>
-
-  for key in keys(g:surround_objects)
-    let textobj = '<Plug>(surround-textobj:' . escape(key, '|')  . ')'
-    execute 'nmap'
-    \       ('cs' . s:to_key_notation(key))
-    \       ('<Plug>(surround-operator-change)'. textobj)
-    execute 'nmap'
-    \       ('ds' . s:to_key_notation(key))
-    \       ('<Plug>(surround-operator-delete)' . textobj)
-  endfor
-endfunction
-
-call s:define_text_objects()
-
-if !get(g:, 'surround_no_default_key_mappings')
+if !get(g:, 'surround_no_default_key_mappings', 0)
   call s:define_default_key_mappings()
 endif
 

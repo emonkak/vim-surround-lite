@@ -64,17 +64,31 @@ function! surround#operator_delete(motion_wiseness) abort
   execute 'normal!' 'r "_dw'
 endfunction
 
-function! surround#textobj_around(head, tail) abort
+function! surround#textobj_around_a(head, tail) abort
   let ranges = s:search_around(a:head, a:tail)
   if ranges isnot 0
-    call s:select_range(ranges[0], ranges[1])
+    call s:select_outer(ranges[0], ranges[1])
   endif
 endfunction
 
-function! surround#textobj_between(edge) abort
+function! surround#textobj_around_i(head, tail) abort
+  let ranges = s:search_around(a:head, a:tail)
+  if ranges isnot 0
+    call s:select_inner(ranges[0], ranges[1])
+  endif
+endfunction
+
+function! surround#textobj_between_a(edge) abort
   let ranges = s:search_between(a:edge)
   if ranges isnot 0
-    call s:select_range(ranges[0], ranges[1])
+    call s:select_outer(ranges[0], ranges[1])
+  endif
+endfunction
+
+function! surround#textobj_between_i(edge) abort
+  let ranges = s:search_between(a:edge)
+  if ranges isnot 0
+    call s:select_inner(ranges[0], ranges[1])
   endif
 endfunction
 
@@ -128,11 +142,20 @@ function! s:search_between(edge) abort
   return [head_pos, tail_pos]
 endfunction
 
-function! s:select_range(head_range, tail_range)
-  call cursor(a:head_range)
+function! s:select_outer(head_pos, tail_pos)
+  call cursor(a:head_pos)
   normal! v
-  call cursor(a:tail_range)
+  call cursor(a:tail_pos)
   if &selection ==# 'exclusive'
     normal! l
+  endif
+endfunction
+
+function! s:select_inner(head_pos, tail_pos)
+  call cursor(a:head_pos)
+  normal! vlo
+  call cursor(a:tail_pos)
+  if &selection !=# 'exclusive'
+    execute 'normal!' "\<BS>"
   endif
 endfunction
