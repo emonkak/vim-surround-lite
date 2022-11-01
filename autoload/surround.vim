@@ -1,16 +1,14 @@
 let s:operator_pair = 0
 
-function! surround#operator_n(operator_func) abort
+function! surround#do_operator_n(operator_func) abort
   call s:setup_operator(a:operator_func)
   let l:count = v:count ? v:count : ''
-  let register = v:register != '' ? '"' . v:register : ''
-  return l:count . register . 'g@'
+  return l:count . 'g@'
 endfunction
 
-function! surround#operator_v(operator_func) abort
+function! surround#do_operator_v(operator_func) abort
   call s:setup_operator(a:operator_func)
-  let register = v:register != '' ? '"' . v:register : ''
-  return register . 'g@'
+  return 'g@'
 endfunction
 
 function! surround#operator_add(motion_wiseness) abort

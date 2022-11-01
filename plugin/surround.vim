@@ -74,21 +74,21 @@ function! s:key_notattion_from_char(c)
 endfunction
 
 nnoremap <expr> <Plug>(surround-operator-add)
-\               surround#operator_n('surround#operator_add')
+\               surround#do_operator_n('surround#operator_add')
 vnoremap <expr> <Plug>(surround-operator-add)
-\               surround#operator_v('surround#operator_add')
+\               surround#do_operator_v('surround#operator_add')
 onoremap <Plug>(surround-operator-add)  g@
 
 nnoremap <expr> <Plug>(surround-operator-change)
-\               surround#operator_n('surround#operator_change')
+\               surround#do_operator_n('surround#operator_change')
 vnoremap <expr> <Plug>(surround-operator-change)
-\               surround#operator_v('surround#operator_change')
+\               surround#do_operator_v('surround#operator_change')
 onoremap <Plug>(surround-operator-change)  g@
 
 nnoremap <expr> <Plug>(surround-operator-delete)
-\               surround#operator_n('surround#operator_delete')
+\               surround#do_operator_n('surround#operator_delete')
 vnoremap <expr> <Plug>(surround-operator-delete)
-\               surround#operator_v('surround#operator_delete')
+\               surround#do_operator_v('surround#operator_delete')
 onoremap <Plug>(surround-operator-delete)  g@
 
 call s:define_text_objects('a')
