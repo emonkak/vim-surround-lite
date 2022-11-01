@@ -106,8 +106,8 @@ function! s:query_operator_pair()
 endfunction
 
 function! s:search_around(head, tail) abort
-  let head_pattern = '\V' . a:head
-  let tail_pattern = '\V' . a:tail
+  let head_pattern = '\V' . escape(a:head, '\')
+  let tail_pattern = '\V' . escape(a:tail, '\')
 
   let tail_pos = searchpairpos(head_pattern,  '', tail_pattern, 'Wn')
   if tail_pos == [0, 0]
@@ -124,8 +124,8 @@ endfunction
 
 function! s:search_between(edge) abort
   let lnum = line('.')
-  let head_pattern = '\V\(\^\|\[^\\]\)\zs' . a:edge
-  let tail_pattern = '\V\[^\\]\zs' . a:edge
+  let head_pattern = '\V\(\^\|\[^\\]\)\zs' . escape(a:edge, '\')
+  let tail_pattern = '\V\[^\\]\zs' . escape(a:edge, '\')
 
   let tail_pos = searchpos(tail_pattern, 'Wn', lnum)
   if tail_pos == [0, 0]
