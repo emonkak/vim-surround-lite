@@ -63,30 +63,30 @@ function! surround#operator_delete(motion_wiseness) abort
 endfunction
 
 function! surround#textobj_around_a(head, tail) abort
-  let ranges = s:search_around(a:head, a:tail)
-  if ranges isnot 0
-    call s:select_outer(ranges[0], ranges[1])
+  let range = s:search_around(a:head, a:tail)
+  if range isnot 0
+    call s:select_outer(range[0], range[1])
   endif
 endfunction
 
 function! surround#textobj_around_i(head, tail) abort
-  let ranges = s:search_around(a:head, a:tail)
-  if ranges isnot 0
-    call s:select_inner(ranges[0], ranges[1])
+  let range = s:search_around(a:head, a:tail)
+  if range isnot 0
+    call s:select_inner(range[0], range[1])
   endif
 endfunction
 
 function! surround#textobj_between_a(edge) abort
-  let ranges = s:search_between(a:edge)
-  if ranges isnot 0
-    call s:select_outer(ranges[0], ranges[1])
+  let range = s:search_between(a:edge)
+  if range isnot 0
+    call s:select_outer(range[0], range[1])
   endif
 endfunction
 
 function! surround#textobj_between_i(edge) abort
-  let ranges = s:search_between(a:edge)
-  if ranges isnot 0
-    call s:select_inner(ranges[0], ranges[1])
+  let range = s:search_between(a:edge)
+  if range isnot 0
+    call s:select_inner(range[0], range[1])
   endif
 endfunction
 
