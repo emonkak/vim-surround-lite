@@ -5,6 +5,7 @@ function! s:test_surround_add() abort
   call s:do_test('wyseb', 'foo bar baz', ['foo (bar) baz'])
   call s:do_test('ys$b', 'foo bar baz', ['(foo bar baz)'])
   call s:do_test('ys$bwyseb', 'foo bar baz', ['((foo) bar baz)'])
+  call s:do_test('wyseb', '  foo', ['  (foo)'])
 
   call s:do_test('yse"', 'foo bar baz', ['"foo" bar baz'])
   call s:do_test('wyse"', 'foo bar baz', ['foo "bar" baz'])
@@ -21,6 +22,7 @@ function! s:test_surround_change() abort
   call s:do_test('csbB', '( foo)', ['{ foo}'])
   call s:do_test('csbB', '(foo )', ['{foo }'])
   call s:do_test('csbB', '(foo())', ['{foo()}'])
+  call s:do_test('f(csbB', '  (foo)', ['  {foo}'])
   call s:do_test('2wcsbB', 'foo(bar())', ['foo{bar()}'])
   call s:do_test('3wcsbB', 'foo(bar())', ['foo(bar{})'])
   call s:do_test('3wcsbBcsbB', 'foo(bar())', ['foo{bar{}}'])
@@ -37,6 +39,7 @@ function! s:test_surround_delete() abort
   call s:do_test('dsb', '(foo )', ['foo'])
   call s:do_test('dsb', '( foo)', ['foo'])
   call s:do_test('dsb', '( foo )', ['foo'])
+  call s:do_test('f(dsb', '  (foo)', ['  foo'])
 
   call s:do_test('dsb', '(foo())', ['foo()'])
   call s:do_test('f(dsb', '(foo())', ['(foo)'])
@@ -62,10 +65,12 @@ endfunction
 
 function! s:do_test(keys, body, expected) abort
   new
+  set smarttab
   silent put =a:body
   1delete
-  1
+  call cursor(1, 1)
   execute 'normal' a:keys
   call assert_equal(a:expected, getline(1, line('$')), '')
+  set smarttab&
   close!
 endfunction

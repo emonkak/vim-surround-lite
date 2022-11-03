@@ -25,7 +25,7 @@ function! surround#operator_add(motion_wiseness) abort
   let head_pos = getpos("'[")[1:]
   let tail_pos = getpos("']")[1:]
 
-  execute 'normal!' 'i ' . "\<BS>\<Esc>"
+  call s:new_undo_block()
 
   call cursor(tail_pos)
   execute 'normal!' append_command . tail . "\<Esc>"
@@ -40,7 +40,7 @@ function! surround#operator_change(motion_wiseness) abort
   let head_pos = getpos("'[")[1:]
   let tail_pos = getpos("']")[1:]
 
-  execute 'normal!' 'i ' . "\<BS>\<Esc>"
+  call s:new_undo_block()
 
   call cursor(tail_pos)
   execute 'normal!' 'r' . tail
@@ -53,7 +53,7 @@ function! surround#operator_delete(motion_wiseness) abort
   let head_pos = getpos("'[")[1:]
   let tail_pos = getpos("']")[1:]
 
-  execute 'normal!' 'i ' . "\<BS>\<Esc>"
+  call s:new_undo_block()
 
   call cursor(tail_pos)
   execute 'normal!' 'r vgel"_x'
@@ -156,4 +156,9 @@ function! s:select_inner(head_pos, tail_pos)
   if &selection !=# 'exclusive'
     execute 'normal!' "\<BS>"
   endif
+endfunction
+
+function s:new_undo_block()
+  " Create a new undo block to keep the cursor position when undo
+  execute 'normal!' 'i ' . "\<Esc>" . '"_x'
 endfunction
