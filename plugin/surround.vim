@@ -69,7 +69,7 @@ function! s:define_default_key_mappings() abort
   endfor
 endfunction
 
-function! s:key_notattion_from_char(c)
+function! s:key_notattion_from_char(c) abort
   return get(s:KEY_NOTATION_TABLE, a:c, a:c)
 endfunction
 

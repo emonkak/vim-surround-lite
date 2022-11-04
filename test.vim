@@ -1,6 +1,6 @@
 #!/usr/bin/env -S vim -u NONE -i NONE -N -n -e -s --cmd "source %"
 
-function s:run(root)
+function s:run(root) abort
   let &runtimepath .= ',' . a:root
   let &runtimepath .= ',' . a:root . '/test/.deps/*'
 
