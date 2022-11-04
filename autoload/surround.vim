@@ -58,8 +58,12 @@ function! surround#operator_delete(motion_wiseness) abort
   call cursor(tail_pos)
   execute 'normal!' 'r vgel"_x'
 
-  call cursor(head_pos)
-  execute 'normal!' 'r "_dw'
+  if head_pos[1] + 1 == col('.')
+    execute 'normal!' '"_dh'
+  else
+    call cursor(head_pos)
+    execute 'normal!' 'r "_dw'
+  endif
 endfunction
 
 function! surround#textobj_around_a(head, tail) abort
@@ -109,13 +113,21 @@ function! s:search_around(head, tail) abort
   let head_pattern = '\V' . escape(a:head, '\')
   let tail_pattern = '\V' . escape(a:tail, '\')
 
-  let tail_pos = searchpairpos(head_pattern,  '', tail_pattern, 'Wn')
-  if tail_pos == [0, 0]
+  if search('\%#' . tail_pattern, 'cn') > 0
+    let head_flags = 'Wbn'
+    let tail_flags = 'Wcn'
+  else
+    let head_flags = 'Wbcn'
+    let tail_flags = 'Wn'
+  endif
+
+  let head_pos = searchpairpos(head_pattern, '', tail_pattern, head_flags)
+  if head_pos == [0, 0]
     return 0
   endif
 
-  let head_pos = searchpairpos(head_pattern, '', tail_pattern, 'Wbcn')
-  if head_pos == [0, 0]
+  let tail_pos = searchpairpos(head_pattern,  '', tail_pattern, tail_flags)
+  if tail_pos == [0, 0]
     return 0
   endif
 
@@ -124,20 +136,36 @@ endfunction
 
 function! s:search_between(edge) abort
   let lnum = line('.')
+  let initial_pattern = '\V\(\^\|\[^\\]\)' . '\%#' . escape(a:edge, '\')
   let head_pattern = '\V\(\^\|\[^\\]\)\zs' . escape(a:edge, '\')
   let tail_pattern = '\V\[^\\]\zs' . escape(a:edge, '\')
 
-  let tail_pos = searchpos(tail_pattern, 'Wn', lnum)
-  if tail_pos == [0, 0]
-    return 0
-  endif
+  let initial_pos = searchpos(initial_pattern, 'bcen', lnum)
+  if initial_pos != [0, 0]
+    let head_pos = searchpos(head_pattern, 'Wbn', lnum)
+    if head_pos != [0, 0]
+      return [head_pos, initial_pos]
+    endif
 
-  let head_pos = searchpos(head_pattern, 'Wbcn', lnum)
-  if head_pos == [0, 0]
-    return 0
-  endif
+    let tail_pos = searchpos(tail_pattern, 'Wn', lnum)
+    if tail_pos != [0, 0]
+      return [initial_pos, tail_pos]
+    endif
 
-  return [head_pos, tail_pos]
+    return 0
+  else
+    let head_pos = searchpos(head_pattern, 'Wbn', lnum)
+    if head_pos == [0, 0]
+      return 0
+    endif
+
+    let tail_pos = searchpos(tail_pattern, 'Wcn', lnum)
+    if tail_pos == [0, 0]
+      return 0
+    endif
+
+    return [head_pos, tail_pos]
+  endif
 endfunction
 
 function! s:select_outer(head_pos, tail_pos)
