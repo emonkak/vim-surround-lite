@@ -43,12 +43,20 @@ function! s:test_surround_change() abort
   call s:do_test('ffcsbB', '(foo())', ['{foo()}'])
   call s:do_test('ffcsbB', '  (foo)  ', ['  {foo}  '])
 
+  call s:do_test('csbB', '(foo)bar(baz)', ['{foo}bar(baz)'])
+  call s:do_test('ffcsbB', '(foo)bar(baz)', ['{foo}bar(baz)'])
+  call s:do_test('f)csbB', '(foo)bar(baz)', ['{foo}bar(baz)'])
+  call s:do_test('f(csbB', '(foo)bar(baz)', ['(foo)bar{baz}'])
+  call s:do_test('2fbcsbB', '(foo)bar(baz)', ['(foo)bar{baz}'])
+  call s:do_test('$csbB', '(foo)bar(baz)', ['(foo)bar{baz}'])
+
   call s:do_test('cs"b', '""', ['()'])
   call s:do_test('cs"b', '"foo"', ['(foo)'])
   call s:do_test('cs"b', '"foo "', ['(foo )'])
   call s:do_test('cs"b', '" foo"', ['( foo)'])
   call s:do_test('cs"b', '" foo "', ['( foo )'])
   call s:do_test('cs"b', '" \"foo\" "', ['( \"foo\" )'])
+  call s:do_test('cs"b', '" \\foo\\ "', ['( \\foo\\ )'])
   call s:do_test('f"cs"b', '  "foo"  ', ['  (foo)  '])
 
   call s:do_test('$cs"b', '""', ['()'])
@@ -57,6 +65,7 @@ function! s:test_surround_change() abort
   call s:do_test('$cs"b', '" foo"', ['( foo)'])
   call s:do_test('$cs"b', '" foo "', ['( foo )'])
   call s:do_test('$cs"b', '" \"foo\" "', ['( \"foo\" )'])
+  call s:do_test('$cs"b', '" \\foo\\ "', ['( \\foo\\ )'])
   call s:do_test('2f"cs"b', '  "foo"  ', ['  (foo)  '])
 
   call s:do_test('ffcs"b', '"foo"', ['(foo)'])
@@ -64,9 +73,17 @@ function! s:test_surround_change() abort
   call s:do_test('ffcs"b', '" foo"', ['( foo)'])
   call s:do_test('ffcs"b', '" foo "', ['( foo )'])
   call s:do_test('ffcs"b', '" \"foo\" "', ['( \"foo\" )'])
+  call s:do_test('ffcs"b', '" \\foo\\ "', ['( \\foo\\ )'])
   call s:do_test('f"cs"b', '" \"foo\" "', ['( \"foo\" )'])
   call s:do_test('2f"cs"b', '" \"foo\" "', ['( \"foo\" )'])
   call s:do_test('ffcs"b', '  "foo"  ', ['  (foo)  '])
+
+  call s:do_test('cs"b', '"foo"bar"baz"', ['(foo)bar"baz"'])
+  call s:do_test('ffcs"b', '"foo"bar"baz"', ['(foo)bar"baz"'])
+  call s:do_test('f"cs"b', '"foo"bar"baz"', ['(foo)bar"baz"'])
+  call s:do_test('2f"cs"b', '"foo"bar"baz"', ['"foo"bar(baz)'])
+  call s:do_test('2fbcs"b', '"foo"bar"baz"', ['"foo"bar(baz)'])
+  call s:do_test('$cs"b', '"foo"bar"baz"', ['"foo"bar(baz)'])
 endfunction
 
 function! s:test_surround_delete() abort
@@ -97,12 +114,20 @@ function! s:test_surround_delete() abort
   call s:do_test('ffdsb', '(foo())', ['foo()'])
   call s:do_test('ffdsb', '  (foo)  ', ['  foo  '])
 
+  call s:do_test('dsbB', '(foo)bar(baz)', ['foobar(baz)'])
+  call s:do_test('ffdsbB', '(foo)bar(baz)', ['foobar(baz)'])
+  call s:do_test('f)dsbB', '(foo)bar(baz)', ['foobar(baz)'])
+  call s:do_test('f(dsbB', '(foo)bar(baz)', ['(foo)barbaz'])
+  call s:do_test('2fbdsbB', '(foo)bar(baz)', ['(foo)barbaz'])
+  call s:do_test('$dsbB', '(foo)bar(baz)', ['(foo)barbaz'])
+
   call s:do_test('ds"b', '""', [''])
   call s:do_test('ds"b', '"foo"', ['foo'])
   call s:do_test('ds"b', '"foo "', ['foo'])
   call s:do_test('ds"b', '" foo"', ['foo'])
   call s:do_test('ds"b', '" foo "', ['foo'])
   call s:do_test('ds"b', '" \"foo\" "', ['\"foo\"'])
+  call s:do_test('ds"b', '" \\foo\\ "', ['\\foo\\'])
   call s:do_test('f"ds"b', '  "foo"  ', ['  foo  '])
 
   call s:do_test('$ds"b', '""', [''])
@@ -111,6 +136,7 @@ function! s:test_surround_delete() abort
   call s:do_test('$ds"b', '" foo"', ['foo'])
   call s:do_test('$ds"b', '" foo "', ['foo'])
   call s:do_test('$ds"b', '" \"foo\" "', ['\"foo\"'])
+  call s:do_test('$ds"b', '" \\foo\\ "', ['\\foo\\'])
   call s:do_test('2f"ds"b', '  "foo"  ', ['  foo  '])
 
   call s:do_test('ffds"b', '"foo"', ['foo'])
@@ -118,7 +144,15 @@ function! s:test_surround_delete() abort
   call s:do_test('ffds"b', '" foo"', ['foo'])
   call s:do_test('ffds"b', '" foo "', ['foo'])
   call s:do_test('ffds"b', '" \"foo\" "', ['\"foo\"'])
+  call s:do_test('ffds"b', '" \\foo\\ "', ['\\foo\\'])
   call s:do_test('ffds"b', '  "foo"  ', ['  foo  '])
+
+  call s:do_test('ds"b', '"foo"bar"baz"', ['foobar"baz"'])
+  call s:do_test('ffds"b', '"foo"bar"baz"', ['foobar"baz"'])
+  call s:do_test('f"ds"b', '"foo"bar"baz"', ['foobar"baz"'])
+  call s:do_test('2f"ds"b', '"foo"bar"baz"', ['"foo"barbaz'])
+  call s:do_test('2fbds"b', '"foo"bar"baz"', ['"foo"barbaz'])
+  call s:do_test('$ds"b', '"foo"bar"baz"', ['"foo"barbaz'])
 endfunction
 
 function! s:do_test(keys, body, expected) abort
