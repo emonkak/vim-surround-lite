@@ -82,6 +82,7 @@ function! s:test_surround_change() abort
   call s:do_test('ffcs"b', '"foo"bar"baz"', ['(foo)bar"baz"'])
   call s:do_test('f"cs"b', '"foo"bar"baz"', ['(foo)bar"baz"'])
   call s:do_test('2f"cs"b', '"foo"bar"baz"', ['"foo"bar(baz)'])
+  call s:do_test('fbcs"b', '"foo"bar"baz"', ['"foo(bar)baz"'])
   call s:do_test('2fbcs"b', '"foo"bar"baz"', ['"foo"bar(baz)'])
   call s:do_test('$cs"b', '"foo"bar"baz"', ['"foo"bar(baz)'])
 endfunction
@@ -151,6 +152,7 @@ function! s:test_surround_delete() abort
   call s:do_test('ffds"b', '"foo"bar"baz"', ['foobar"baz"'])
   call s:do_test('f"ds"b', '"foo"bar"baz"', ['foobar"baz"'])
   call s:do_test('2f"ds"b', '"foo"bar"baz"', ['"foo"barbaz'])
+  call s:do_test('fbds"b', '"foo"bar"baz"', ['"foobarbaz"'])
   call s:do_test('2fbds"b', '"foo"bar"baz"', ['"foo"barbaz'])
   call s:do_test('$ds"b', '"foo"bar"baz"', ['"foo"barbaz'])
 endfunction

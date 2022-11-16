@@ -135,30 +135,42 @@ function! s:search_around(head, tail) abort
 endfunction
 
 function! s:search_between(edge) abort
-  let original_cursor = getpos('.')[1:]
+  let cursor = getpos('.')[1:]
+  let pattern = '\V\%(\[^\\]\\\)\@<!' . escape(a:edge, '\\')
 
   " Move the cursor to the the first character of the current line.
   call cursor(0, 1)
 
-  let pattern = '\V\%(\[^\\]\\\)\@<!' . escape(a:edge, '\\')
-  let range = 0
-  let start_pos = searchpos(pattern, 'Wc', original_cursor[0])
-
-  while start_pos != [0, 0]
-    let end_pos = searchpos(pattern, 'W', original_cursor[0])
-    if end_pos == [0, 0]
-      break
+  try
+    let current_pos = searchpos(pattern, 'Wc', cursor[0])
+    if current_pos == [0, 0]
+      return 0
     endif
-    if start_pos[1] <= original_cursor[1] && original_cursor[1] <= end_pos[1]
-      let range = [start_pos, end_pos]
-      break
-    endif
-    let start_pos = searchpos(pattern, 'W', original_cursor[0])
-  endwhile
 
-  call cursor(original_cursor)
+    let in_quote = 1
 
-  return range
+    while 1
+      let next_pos = searchpos(pattern, 'W', cursor[0])
+      if next_pos == [0, 0]
+        return 0
+      endif
+
+      if in_quote
+        if current_pos[1] <= cursor[1] && cursor[1] <= next_pos[1]
+          return [current_pos, next_pos]
+        endif
+      else
+        if current_pos[1] < cursor[1] && cursor[1] < next_pos[1]
+          return [current_pos, next_pos]
+        endif
+      endif
+
+      let current_pos = next_pos
+      let in_quote = !in_quote
+    endwhile
+  finally
+    call cursor(cursor)
+  endtry
 endfunction
 
 function! s:select_outer(head_pos, tail_pos) abort
