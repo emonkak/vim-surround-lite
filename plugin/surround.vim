@@ -61,15 +61,15 @@ function! s:define_default_key_mappings() abort
   for key in keys(g:surround_objects)
     let textobj = '<Plug>(surround-textobj-a:' . escape(key, '|')  . ')'
     execute 'nmap'
-    \       ('cs' . s:key_notattion_from_char(key))
+    \       ('cs' . s:key_notation_from_char(key))
     \       ('<Plug>(surround-operator-change)'. textobj)
     execute 'nmap'
-    \       ('ds' . s:key_notattion_from_char(key))
+    \       ('ds' . s:key_notation_from_char(key))
     \       ('<Plug>(surround-operator-delete)' . textobj)
   endfor
 endfunction
 
-function! s:key_notattion_from_char(c) abort
+function! s:key_notation_from_char(c) abort
   return get(s:KEY_NOTATION_TABLE, a:c, a:c)
 endfunction
 
