@@ -58,7 +58,8 @@ function! surround#operator_delete(motion_wiseness) abort
   call cursor(tail_pos)
   execute 'normal!' 'r vgel"_x'
 
-  if head_pos[1] + 1 == col('.')
+  let cursor_pos = getpos('.')[1:]
+  if head_pos[0] == cursor_pos[0] && head_pos[1] + 1 == cursor_pos[1]
     execute 'normal!' '"_dh'
   else
     call cursor(head_pos)
