@@ -111,8 +111,8 @@ function! s:query_operator_pair() abort
 endfunction
 
 function! s:search_around(head, tail) abort
-  let head_pattern = '\V' . escape(a:head, '\')
-  let tail_pattern = '\V' . escape(a:tail, '\')
+  let head_pattern = '\V\%(\[^\\]\\\)\@<!' . escape(a:head, '\')
+  let tail_pattern = '\V\%(\[^\\]\\\)\@<!' . escape(a:tail, '\')
 
   if search('\%#' . tail_pattern, 'cn') > 0
     let head_flags = 'Wbn'
@@ -127,7 +127,7 @@ function! s:search_around(head, tail) abort
     return 0
   endif
 
-  let tail_pos = searchpairpos(head_pattern,  '', tail_pattern, tail_flags)
+  let tail_pos = searchpairpos(head_pattern, '', tail_pattern, tail_flags)
   if tail_pos == [0, 0]
     return 0
   endif
