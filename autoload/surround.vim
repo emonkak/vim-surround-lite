@@ -1,4 +1,6 @@
-let s:operator_pair = 0
+let s:last_operator_pair = 0
+
+let s:last_textobj_pair = 0
 
 function! surround#do_operator_n(operator_func) abort
   call s:setup_operator(a:operator_func)
@@ -12,7 +14,7 @@ function! surround#do_operator_v(operator_func) abort
 endfunction
 
 function! surround#operator_add(motion_wiseness) abort
-  let [head, tail] = s:query_operator_pair()
+  let [start, end] = s:query_operator_pair()
 
   if a:motion_wiseness ==# 'line'
     let append_command = 'A'
@@ -22,128 +24,155 @@ function! surround#operator_add(motion_wiseness) abort
     let insert_command = 'i'
   endif
 
-  let head_pos = getpos("'[")[1:]
-  let tail_pos = getpos("']")[1:]
+  let start_pos = getpos("'[")[1:]
+  let end_pos = getpos("']")[1:]
 
   call s:new_undo_block()
 
-  call cursor(tail_pos)
-  execute 'normal!' append_command . tail . "\<Esc>"
+  call cursor(end_pos)
+  execute 'normal!' append_command . end . "\<Esc>"
 
-  call cursor(head_pos)
-  execute 'normal!' insert_command . head . "\<Esc>"
+  call cursor(start_pos)
+  execute 'normal!' insert_command . start . "\<Esc>"
 endfunction
 
 function! surround#operator_change(motion_wiseness) abort
-  let [head, tail] = s:query_operator_pair()
+  let [before_head, before_tail] = s:query_textobj_pair()
+  let [after_head, after_tail] = s:query_operator_pair()
 
-  let head_pos = getpos("'[")[1:]
-  let tail_pos = getpos("']")[1:]
+  let before_head_count = max([1, strchars(before_head)])
+  let before_tail_count = max([1, strchars(before_tail)])
+
+  let start_pos = getpos("'[")[1:]
+  let end_pos = getpos("']")[1:]
 
   call s:new_undo_block()
 
-  call cursor(tail_pos)
-  execute 'normal!' 'r' . tail
+  call cursor(end_pos)
+  execute 'normal!' '"_c' . before_tail_count . 'l' . after_tail . "\<Esc>"
 
-  call cursor(head_pos)
-  execute 'normal!' 'r' . head
+  call cursor(start_pos)
+  execute 'normal!' '"_c' . before_head_count . 'l' . after_head . "\<Esc>"
 endfunction
 
 function! surround#operator_delete(motion_wiseness) abort
-  let head_pos = getpos("'[")[1:]
-  let tail_pos = getpos("']")[1:]
+  let [start, end] = s:query_textobj_pair()
+
+  let start_count = max([1, strchars(start)])
+  let end_count = max([1, strchars(end)])
+
+  let start_pos = getpos("'[")[1:]
+  let end_pos = getpos("']")[1:]
 
   call s:new_undo_block()
 
-  call cursor(tail_pos)
-  execute 'normal!' 'r vgel"_x'
+  call cursor(end_pos)
+  execute 'normal!' end_count . 'r vgel"_x'
 
   let cursor_pos = getpos('.')[1:]
-  if head_pos[0] == cursor_pos[0] && head_pos[1] + 1 == cursor_pos[1]
-    execute 'normal!' '"_dh'
+  if start_pos[0] == cursor_pos[0] && start_pos[1] + start_count == cursor_pos[1]
+    " The cursor position is the same as the start position.
+    execute 'normal!' '"_d' . start_count . 'h'
   else
-    call cursor(head_pos)
-    execute 'normal!' 'r "_dw'
+    call cursor(start_pos)
+    execute 'normal!' . start_count . 'r `["_dw'
   endif
 endfunction
 
-function! surround#textobj_around_a(head, tail) abort
-  let range = s:search_around(a:head, a:tail)
+function! surround#textobj_single_a(delimiter) abort
+  let pattern = s:delimiter_pattern(a:delimiter)
+  let range = s:search_delimiter(pattern)
   if range isnot 0
     call s:select_outer(range[0], range[1])
   endif
+  let s:last_textobj_pair = [a:delimiter, a:delimiter]
 endfunction
 
-function! surround#textobj_around_i(head, tail) abort
-  let range = s:search_around(a:head, a:tail)
+function! surround#textobj_single_i(delimiter) abort
+  let pattern = s:delimiter_pattern(a:delimiter)
+  let range = s:search_delimiter(pattern)
   if range isnot 0
     call s:select_inner(range[0], range[1])
   endif
+  let s:last_textobj_pair = [a:delimiter, a:delimiter]
 endfunction
 
-function! surround#textobj_between_a(edge) abort
-  let range = s:search_between(a:edge)
+function! surround#textobj_pair_a(start, end) abort
+  let start_pattern = s:delimiter_pattern(a:start)
+  let end_pattern = s:delimiter_pattern(a:end)
+  let range = s:search_pair(start_pattern, end_pattern)
   if range isnot 0
     call s:select_outer(range[0], range[1])
   endif
+  let s:last_textobj_pair = [a:start, a:end]
 endfunction
 
-function! surround#textobj_between_i(edge) abort
-  let range = s:search_between(a:edge)
+function! surround#textobj_pair_i(start, end) abort
+  let start_pattern = s:delimiter_pattern(a:start)
+  let end_pattern = s:delimiter_pattern(a:end)
+  let range = s:search_pair(start_pattern, end_pattern)
   if range isnot 0
     call s:select_inner(range[0], range[1])
   endif
+  let s:last_textobj_pair = [a:start, a:end]
+endfunction
+
+function! surround#textobj_tag_a(tag_name) abort
+  let start = '<' . a:tag_name . '>'
+  let end = '</' . a:tag_name . '>'
+  return surround#textobj_pair_a(start, end)
+endfunction
+
+function! surround#textobj_tag_i(tag_name) abort
+  let start = '<' . a:tag_name . '>'
+  let end = '</' . a:tag_name . '>'
+  return surround#textobj_pair_i(start, end)
 endfunction
 
 function! s:setup_operator(operator_func) abort
   let &operatorfunc = a:operator_func
-  let s:operator_pair = 0
+  let s:last_operator_pair = 0
+  let s:last_textobj_pair = 0
 endfunction
 
 function! s:query_operator_pair() abort
-  if s:operator_pair is 0
+  if s:last_operator_pair is 0
     let char = nr2char(getchar())
-    let s:operator_pair = has_key(g:surround_objects, char)
-    \                   ? g:surround_objects[char]
-    \                   : ['', '']
+    if has_key(g:surround_objects, char)
+      let object = g:surround_objects[char]
+      let s:last_operator_pair = s:surround_object_to_pair(object)
+    else
+      let s:last_operator_pair = ['', '']
+    endif
   endif
-  return s:operator_pair
+  return s:last_operator_pair
 endfunction
 
-function! s:search_around(head, tail) abort
-  let head_pattern = '\V\%(\[^\\]\\\)\@<!' . escape(a:head, '\')
-  let tail_pattern = '\V\%(\[^\\]\\\)\@<!' . escape(a:tail, '\')
+function! s:query_textobj_pair() abort
+  return s:last_textobj_pair is 0 ? ['', ''] : s:last_textobj_pair
+endfunction
 
-  if search('\%#' . tail_pattern, 'cn') > 0
-    let head_flags = 'Wbn'
-    let tail_flags = 'Wcn'
+function! s:surround_object_to_pair(object) abort
+  if a:object.type ==# 'single'
+    return [a:object.delimiter, a:object.delimiter]
+  elseif a:object.type ==# 'pair'
+    return [a:object.start, a:object.end]
+  elseif a:object.type ==# 'tag'
+    let tag_name = input('Tag Name: ')
+    return ['<' . tag_name . '>', '</' . tag_name . '>']
   else
-    let head_flags = 'Wbcn'
-    let tail_flags = 'Wn'
+    return ['', '']
   endif
-
-  let head_pos = searchpairpos(head_pattern, '', tail_pattern, head_flags)
-  if head_pos == [0, 0]
-    return 0
-  endif
-
-  let tail_pos = searchpairpos(head_pattern, '', tail_pattern, tail_flags)
-  if tail_pos == [0, 0]
-    return 0
-  endif
-
-  return [head_pos, tail_pos]
 endfunction
 
-function! s:search_between(edge) abort
+function! s:search_delimiter(pattern) abort
   let cursor = getpos('.')[1:]
-  let pattern = '\V\%(\[^\\]\\\)\@<!' . escape(a:edge, '\\')
 
   " Move the cursor to the the first character of the current line.
   call cursor(0, 1)
 
   try
-    let current_pos = searchpos(pattern, 'Wc', cursor[0])
+    let current_pos = searchpos(a:pattern, 'Wc', cursor[0])
     if current_pos == [0, 0]
       return 0
     endif
@@ -151,7 +180,7 @@ function! s:search_between(edge) abort
     let in_quote = 1
 
     while 1
-      let next_pos = searchpos(pattern, 'W', cursor[0])
+      let next_pos = searchpos(a:pattern, 'W', cursor[0])
       if next_pos == [0, 0]
         return 0
       endif
@@ -174,19 +203,49 @@ function! s:search_between(edge) abort
   endtry
 endfunction
 
-function! s:select_outer(head_pos, tail_pos) abort
-  call cursor(a:head_pos)
+function! s:search_pair(start_pattern, end_pattern) abort
+  if search('\%#' . a:end_pattern, 'cn') > 0
+    let start_flags = 'Wbn'
+    let end_flags = 'Wcn'
+  else
+    let start_flags = 'Wbcn'
+    let end_flags = 'Wn'
+  endif
+
+  let start_pos = searchpairpos(a:start_pattern, '', a:end_pattern, start_flags)
+  if start_pos == [0, 0]
+    return 0
+  endif
+
+  let end_pos = searchpairpos(a:start_pattern, '', a:end_pattern, end_flags)
+  if end_pos == [0, 0]
+    return 0
+  endif
+
+  return [start_pos, end_pos]
+endfunction
+
+function! s:delimiter_pattern(delimiter) abort
+  if strchars(a:delimiter) > 1
+    return '\V' . escape(a:delimiter, '\\')
+  else
+    return '\V\%(\[^\\]\\\)\@<!' . escape(a:delimiter, '\\')
+  endif
+endfunction
+
+function! s:select_outer(start_pos, end_pos) abort
+  call cursor(a:start_pos)
   normal! v
-  call cursor(a:tail_pos)
+  call cursor(a:end_pos)
   if &selection ==# 'exclusive'
     normal! l
   endif
 endfunction
 
-function! s:select_inner(head_pos, tail_pos) abort
-  call cursor(a:head_pos)
+function! s:select_inner(start_pos, end_pos) abort
+  call cursor(a:start_pos)
   normal! vlo
-  call cursor(a:tail_pos)
+  call cursor(a:end_pos)
   if &selection !=# 'exclusive'
     execute 'normal!' "\<BS>"
   endif

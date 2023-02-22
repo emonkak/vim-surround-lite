@@ -4,42 +4,43 @@ endif
 
 if !exists('g:surround_objects')
   let g:surround_objects = {
-  \   '!': ['!', '!'],
-  \   '"': ['"', '"'],
-  \   '#': ['#', '#'],
-  \   '$': ['$', '$'],
-  \   '%': ['%', '%'],
-  \   '&': ['&', '&'],
-  \   "'": ["'", "'"],
-  \   '(': ['(', ')'],
-  \   ')': ['(', ')'],
-  \   '*': ['*', '*'],
-  \   '+': ['+', '+'],
-  \   ',': [',', ','],
-  \   '-': ['-', '-'],
-  \   '.': ['.', '.'],
-  \   '/': ['/', '/'],
-  \   ':': [':', ':'],
-  \   ';': [';', ';'],
-  \   '<': ['<', '>'],
-  \   '=': ['=', '='],
-  \   '>': ['<', '>'],
-  \   '?': ['?', '?'],
-  \   '@': ['@', '@'],
-  \   'B': ['{', '}'],
-  \   '[': ['[', ']'],
-  \   '\\': ['\\', '\\'],
-  \   ']': ['[', ']'],
-  \   '^': ['^', '^'],
-  \   '_': ['_', '_'],
-  \   '`': ['`', '`'],
-  \   'a': ['<', '>'],
-  \   'b': ['(', ')'],
-  \   'r': ['[', ']'],
-  \   '{': ['{', '}'],
-  \   '|': ['|', '|'],
-  \   '}': ['{', '}'],
-  \   '~': ['~', '~'],
+  \   '!': { 'type': 'single', 'delimiter': '!' },
+  \   '"': { 'type': 'single', 'delimiter': '"' },
+  \   '#': { 'type': 'single', 'delimiter': '#' },
+  \   '$': { 'type': 'single', 'delimiter': '$' },
+  \   '%': { 'type': 'single', 'delimiter': '%' },
+  \   '&': { 'type': 'single', 'delimiter': '&' },
+  \   "'": { 'type': 'single', 'delimiter': "'" },
+  \   '(': { 'type': 'pair', 'start': '(', 'end': ')' },
+  \   ')': { 'type': 'pair', 'start': '(', 'end': ')' },
+  \   '*': { 'type': 'single', 'delimiter': '*' },
+  \   '+': { 'type': 'single', 'delimiter': '+' },
+  \   ',': { 'type': 'single', 'delimiter': ',' },
+  \   '-': { 'type': 'single', 'delimiter': '-' },
+  \   '.': { 'type': 'single', 'delimiter': '.' },
+  \   '/': { 'type': 'single', 'delimiter': '/' },
+  \   ':': { 'type': 'single', 'delimiter': ':' },
+  \   ';': { 'type': 'single', 'delimiter': ';' },
+  \   '<': { 'type': 'pair', 'start': '<', 'end': '>' },
+  \   '=': { 'type': 'single', 'delimiter': '=' },
+  \   '>': { 'type': 'pair', 'start': '<', 'end': '>' },
+  \   '?': { 'type': 'single', 'delimiter': '?' },
+  \   '@': { 'type': 'single', 'delimiter': '@' },
+  \   'B': { 'type': 'pair', 'start': '{', 'end': '}' },
+  \   '[': { 'type': 'pair', 'start': '[', 'end': ']' },
+  \   '\\': { 'type': 'single', 'delimiter': '\\' },
+  \   ']': { 'type': 'pair', 'start': '[', 'end': ']' },
+  \   '^': { 'type': 'single', 'delimiter': '^' },
+  \   '_': { 'type': 'single', 'delimiter': '_' },
+  \   '`': { 'type': 'single', 'delimiter': '`' },
+  \   'a': { 'type': 'pair', 'start': '<', 'end': '>' },
+  \   'b': { 'type': 'pair', 'start': '(', 'end': ')' },
+  \   'r': { 'type': 'pair', 'start': '[', 'end': ']' },
+  \   't': { 'type': 'tag' },
+  \   '{': { 'type': 'pair', 'start': '{', 'end': '}' },
+  \   '|': { 'type': 'single', 'delimiter': '|' },
+  \   '}': { 'type': 'pair', 'start': '{', 'end': '}' },
+  \   '~': { 'type': 'single', 'delimiter': '~' },
   \ }
 endif
 
@@ -50,22 +51,35 @@ let s:KEY_NOTATION_TABLE = {
 \   ' ': '<Space>',
 \ }
 
+function! s:define_operator(lhs, operator_func) abort
+  execute 'nnoremap' '<expr>' a:lhs
+  \       'surround#do_operator_n(' . string(a:operator_func) . ')'
+  execute 'vnoremap' '<expr>' a:lhs
+  \       'surround#do_operator_v(' . string(a:operator_func) . ')'
+  execute 'onoremap' a:lhs 'g@'
+endfunction
+
 function! s:define_text_objects(kind) abort
-  for [key, value] in items(g:surround_objects)
-    let [head, tail] = value
+  for [key, object] in items(g:surround_objects)
+    if object.type ==# 'single'
+      let rhs = printf(':<C-u>call surround#textobj_single_%s(%s)<CR>',
+      \                a:kind,
+      \                string(escape(object.delimiter, '|')))
+    elseif object.type ==# 'pair'
+      let rhs = printf(':<C-u>call surround#textobj_pair_%s(%s, %s)<CR>',
+      \                a:kind,
+      \                string(escape(object.start, '|')),
+      \                string(escape(object.end, '|')))
+    elseif object.type ==# 'tag'
+      let rhs = printf(':<C-u>call surround#textobj_tag_%s(input("Tag Name: "))<CR>',
+      \                a:kind)
+    else
+      throw printf('Unexpected type "%s". Allowed values are "single", "pair" or "tag".',
+      \            object.type)
+    endif
     let lhs = printf('<Plug>(surround-textobj-%s:%s)',
     \                a:kind,
     \                escape(key, '|'))
-    if head ==# tail
-      let rhs = printf(':<C-u>call surround#textobj_between_%s(%s)<CR>',
-      \                a:kind,
-      \                string(escape(head, '|')))
-    else
-      let rhs = printf(':<C-u>call surround#textobj_around_%s(%s, %s)<CR>',
-      \                a:kind,
-      \                string(escape(head, '|')),
-      \                string(escape(tail, '|')))
-    endif
     execute 'vnoremap <silent>' lhs rhs
     execute 'onoremap <silent>' lhs rhs
   endfor
@@ -79,36 +93,22 @@ function! s:define_default_key_mappings() abort
 
   for key in keys(g:surround_objects)
     let textobj = '<Plug>(surround-textobj-a:' . escape(key, '|')  . ')'
+    let key_notation = get(s:KEY_NOTATION_TABLE, key, key)
     execute 'nmap'
-    \       ('cs' . s:key_notation_from_char(key))
-    \       ('<Plug>(surround-operator-change)'. textobj)
+    \       ('cs' . key_notation)
+    \       ('<Plug>(surround-operator-change)' . textobj)
     execute 'nmap'
-    \       ('ds' . s:key_notation_from_char(key))
+    \       ('ds' . key_notation)
     \       ('<Plug>(surround-operator-delete)' . textobj)
   endfor
 endfunction
 
-function! s:key_notation_from_char(c) abort
-  return get(s:KEY_NOTATION_TABLE, a:c, a:c)
-endfunction
-
-nnoremap <expr> <Plug>(surround-operator-add)
-\               surround#do_operator_n('surround#operator_add')
-vnoremap <expr> <Plug>(surround-operator-add)
-\               surround#do_operator_v('surround#operator_add')
-onoremap <Plug>(surround-operator-add)  g@
-
-nnoremap <expr> <Plug>(surround-operator-change)
-\               surround#do_operator_n('surround#operator_change')
-vnoremap <expr> <Plug>(surround-operator-change)
-\               surround#do_operator_v('surround#operator_change')
-onoremap <Plug>(surround-operator-change)  g@
-
-nnoremap <expr> <Plug>(surround-operator-delete)
-\               surround#do_operator_n('surround#operator_delete')
-vnoremap <expr> <Plug>(surround-operator-delete)
-\               surround#do_operator_v('surround#operator_delete')
-onoremap <Plug>(surround-operator-delete)  g@
+call s:define_operator('<Plug>(surround-operator-add)',
+\                      'surround#operator_add')
+call s:define_operator('<Plug>(surround-operator-change)',
+\                      'surround#operator_change')
+call s:define_operator('<Plug>(surround-operator-delete)',
+\                      'surround#operator_delete')
 
 call s:define_text_objects('a')
 call s:define_text_objects('i')

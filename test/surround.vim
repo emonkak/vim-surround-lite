@@ -1,12 +1,6 @@
 runtime! plugin/surround.vim
 
 function! s:test_surround_add() abort
-  call s:do_test('yseb', 'foo bar baz', '(foo) bar baz')
-  call s:do_test('wyseb', 'foo bar baz', 'foo (bar) baz')
-  call s:do_test('ys$b', 'foo bar baz', '(foo bar baz)')
-  call s:do_test('ys$bwyseb', 'foo bar baz', '((foo) bar baz)')
-  call s:do_test('wyseb', '  foo', '  (foo)')
-
   call s:do_test('yse"', 'foo bar baz', '"foo" bar baz')
   call s:do_test('wyse"', 'foo bar baz', 'foo "bar" baz')
   call s:do_test('ys$"', 'foo bar baz', '"foo bar baz"')
@@ -14,50 +8,21 @@ function! s:test_surround_add() abort
   call s:do_test('yse''', 'foo bar baz', '''foo'' bar baz')
   call s:do_test('wyse''', 'foo bar baz', 'foo ''bar'' baz')
   call s:do_test('ys$''', 'foo bar baz', '''foo bar baz''')
+
+  call s:do_test('yseb', 'foo bar baz', '(foo) bar baz')
+  call s:do_test('wyseb', 'foo bar baz', 'foo (bar) baz')
+  call s:do_test('ys$b', 'foo bar baz', '(foo bar baz)')
+  call s:do_test('ys$bwyseb', 'foo bar baz', '((foo) bar baz)')
+  call s:do_test('wyseb', '  foo', '  (foo)')
+
+  call s:do_test("ysetdiv\<CR>", 'foo bar baz', '<div>foo</div> bar baz')
+  call s:do_test("wysetdiv\<CR>", 'foo bar baz', 'foo <div>bar</div> baz')
+  call s:do_test("ys$tdiv\<CR>", 'foo bar baz', '<div>foo bar baz</div>')
+  call s:do_test("ys$tdiv\<CR>wysetdiv\<CR>", 'foo bar baz', '<div><div>foo</div> bar baz</div>')
+  call s:do_test("wysetdiv\<CR>", '  foo', '  <div>foo</div>')
 endfunction
 
 function! s:test_surround_change() abort
-  call s:do_test('csbB', '()', '{}')
-  call s:do_test('csbB', '(foo)', '{foo}')
-  call s:do_test('csbB', '(foo )', '{foo }')
-  call s:do_test('csbB', '( foo)', '{ foo}')
-  call s:do_test('csbB', '( foo )', '{ foo }')
-  call s:do_test('csbB', '( \(foo )', '{ \(foo }')
-  call s:do_test('csbB', '( foo\) )', '{ foo\) }')
-  call s:do_test('csbB', '( \(foo\) )', '{ \(foo\) }')
-  call s:do_test('csbB', '(foo())', '{foo()}')
-  call s:do_test('f(csbB', '(foo())', '(foo{})')
-  call s:do_test('f(csbB', '  ()  ', '  {}  ')
-  call s:do_test('f(csbB', '  (foo)  ', '  {foo}  ')
-
-  call s:do_test('csbB', "(\na)", "{\na}")
-  call s:do_test('csbB', "(a\n)", "{a\n}")
-  call s:do_test('csbB', "((\na))", "{(\na)}")
-  call s:do_test('csbB', "((a\n))", "{(a\n)}")
-
-  call s:do_test('$csbB', '()', '{}')
-  call s:do_test('$csbB', '(foo )', '{foo }')
-  call s:do_test('$csbB', '( foo)', '{ foo}')
-  call s:do_test('$csbB', '( foo )', '{ foo }')
-  call s:do_test('$csbB', '(foo())', '{foo()}')
-  call s:do_test('f)csbB', '(foo())', '(foo{})')
-  call s:do_test('f)csbB', '  ()  ', '  {}  ')
-  call s:do_test('f)csbB', '  (foo)  ', '  {foo}  ')
-
-  call s:do_test('ffcsbB', '(foo)', '{foo}')
-  call s:do_test('ffcsbB', '(foo )', '{foo }')
-  call s:do_test('ffcsbB', '( foo)', '{ foo}')
-  call s:do_test('ffcsbB', '( foo )', '{ foo }')
-  call s:do_test('ffcsbB', '(foo())', '{foo()}')
-  call s:do_test('ffcsbB', '  (foo)  ', '  {foo}  ')
-
-  call s:do_test('csbB', '(foo)bar(baz)', '{foo}bar(baz)')
-  call s:do_test('ffcsbB', '(foo)bar(baz)', '{foo}bar(baz)')
-  call s:do_test('f)csbB', '(foo)bar(baz)', '{foo}bar(baz)')
-  call s:do_test('f(csbB', '(foo)bar(baz)', '(foo)bar{baz}')
-  call s:do_test('2fbcsbB', '(foo)bar(baz)', '(foo)bar{baz}')
-  call s:do_test('$csbB', '(foo)bar(baz)', '(foo)bar{baz}')
-
   call s:do_test('cs"b', '""', '()')
   call s:do_test('cs"b', '"foo"', '(foo)')
   call s:do_test('cs"b', '"foo "', '(foo )')
@@ -93,51 +58,61 @@ function! s:test_surround_change() abort
   call s:do_test('fbcs"b', '"foo"bar"baz"', '"foo(bar)baz"')
   call s:do_test('2fbcs"b', '"foo"bar"baz"', '"foo"bar(baz)')
   call s:do_test('$cs"b', '"foo"bar"baz"', '"foo"bar(baz)')
+
+  call s:do_test('csbB', '()', '{}')
+  call s:do_test('csbB', '(foo)', '{foo}')
+  call s:do_test('csbB', '(foo )', '{foo }')
+  call s:do_test('csbB', '( foo)', '{ foo}')
+  call s:do_test('csbB', '( foo )', '{ foo }')
+  call s:do_test('csbB', '(foo())', '{foo()}')
+  call s:do_test('f(csbB', '(foo())', '(foo{})')
+  call s:do_test('f(csbB', '  ()  ', '  {}  ')
+  call s:do_test('f(csbB', '  (foo)  ', '  {foo}  ')
+
+  call s:do_test('csbB', '( \(foo )', '{ \(foo }')
+  call s:do_test('csbB', '( foo\) )', '{ foo\) }')
+  call s:do_test('csbB', '( \(foo\) )', '{ \(foo\) }')
+
+  call s:do_test('csbB', "(\na)", "{\na}")
+  call s:do_test('csbB', "(a\n)", "{a\n}")
+  call s:do_test('csbB', "((\na))", "{(\na)}")
+  call s:do_test('csbB', "((a\n))", "{(a\n)}")
+
+  call s:do_test('$csbB', '()', '{}')
+  call s:do_test('$csbB', '(foo )', '{foo }')
+  call s:do_test('$csbB', '( foo)', '{ foo}')
+  call s:do_test('$csbB', '( foo )', '{ foo }')
+  call s:do_test('$csbB', '(foo())', '{foo()}')
+  call s:do_test('f)csbB', '(foo())', '(foo{})')
+  call s:do_test('f)csbB', '  ()  ', '  {}  ')
+  call s:do_test('f)csbB', '  (foo)  ', '  {foo}  ')
+
+  call s:do_test('ffcsbB', '(foo)', '{foo}')
+  call s:do_test('ffcsbB', '(foo )', '{foo }')
+  call s:do_test('ffcsbB', '( foo)', '{ foo}')
+  call s:do_test('ffcsbB', '( foo )', '{ foo }')
+  call s:do_test('ffcsbB', '(foo())', '{foo()}')
+  call s:do_test('ffcsbB', '  (foo)  ', '  {foo}  ')
+
+  call s:do_test('csbB', '(foo)bar(baz)', '{foo}bar(baz)')
+  call s:do_test('ffcsbB', '(foo)bar(baz)', '{foo}bar(baz)')
+  call s:do_test('f)csbB', '(foo)bar(baz)', '{foo}bar(baz)')
+  call s:do_test('f(csbB', '(foo)bar(baz)', '(foo)bar{baz}')
+  call s:do_test('2fbcsbB', '(foo)bar(baz)', '(foo)bar{baz}')
+  call s:do_test('$csbB', '(foo)bar(baz)', '(foo)bar{baz}')
+
+  call s:do_test("cstdiv\<CR>tp\<CR>", '<div></div>', '<p></p>')
+  call s:do_test("cstdiv\<CR>tp\<CR>", '<div>foo</div>', '<p>foo</p>')
+  call s:do_test("cstdiv\<CR>tp\<CR>", '<div>foo </div>', '<p>foo </p>')
+  call s:do_test("cstdiv\<CR>tp\<CR>", '<div> foo</div>', '<p> foo</p>')
+  call s:do_test("cstdiv\<CR>tp\<CR>", '<div> foo </div>', '<p> foo </p>')
+  call s:do_test("cstdiv\<CR>tp\<CR>", '<div>foo<div></div></div>', '<p>foo<div></div></p>')
+  call s:do_test("f<cstdiv\<CR>tp\<CR>", '<div>foo<div></div></div>', '<div>foo<p></p></div>')
+  call s:do_test("f<cstdiv\<CR>tp\<CR>", '  <div></div>  ', '  <p></p>  ')
+  call s:do_test("f<cstdiv\<CR>tp\<CR>", '  <div>foo</div>  ', '  <p>foo</p>  ')
 endfunction
 
 function! s:test_surround_delete() abort
-  call s:do_test('dsb', '()', '')
-  call s:do_test('dsb', '(foo)', 'foo')
-  call s:do_test('dsb', '(foo )', 'foo')
-  call s:do_test('dsb', '( foo)', 'foo')
-  call s:do_test('dsb', '( foo )', 'foo')
-  call s:do_test('dsb', '( \(foo )', '\(foo')
-  call s:do_test('dsb', '( foo\) )', 'foo\)')
-  call s:do_test('dsb', '( \(foo\) )', '\(foo\)')
-  call s:do_test('dsb', '(foo())', 'foo()')
-  call s:do_test('f(dsb', '(foo())', '(foo)')
-  call s:do_test('f(dsb', '  ()  ', '    ')
-  call s:do_test('f(dsb', '  (foo)  ', '  foo  ')
-
-  call s:do_test('dsb', "(\na)", "\na")
-  call s:do_test('dsb', "(a\n)", 'a')
-  call s:do_test('dsb', "((\na))", "(\na)")
-  call s:do_test('dsb', "((a\n))", "(a\n)")
-
-  call s:do_test('$dsb', '()', '')
-  call s:do_test('$dsb', '(foo)', 'foo')
-  call s:do_test('$dsb', '(foo )', 'foo')
-  call s:do_test('$dsb', '( foo)', 'foo')
-  call s:do_test('$dsb', '( foo )', 'foo')
-  call s:do_test('$dsb', '(foo())', 'foo()')
-  call s:do_test('f)dsb', '(foo())', '(foo)')
-  call s:do_test('f)dsb', '  ()  ', '    ')
-  call s:do_test('f)dsb', '  (foo)  ', '  foo  ')
-
-  call s:do_test('ffdsb', '(foo)', 'foo')
-  call s:do_test('ffdsb', '(foo )', 'foo')
-  call s:do_test('ffdsb', '( foo)', 'foo')
-  call s:do_test('ffdsb', '( foo )', 'foo')
-  call s:do_test('ffdsb', '(foo())', 'foo()')
-  call s:do_test('ffdsb', '  (foo)  ', '  foo  ')
-
-  call s:do_test('dsbB', '(foo)bar(baz)', 'foobar(baz)')
-  call s:do_test('ffdsbB', '(foo)bar(baz)', 'foobar(baz)')
-  call s:do_test('f)dsbB', '(foo)bar(baz)', 'foobar(baz)')
-  call s:do_test('f(dsbB', '(foo)bar(baz)', '(foo)barbaz')
-  call s:do_test('2fbdsbB', '(foo)bar(baz)', '(foo)barbaz')
-  call s:do_test('$dsbB', '(foo)bar(baz)', '(foo)barbaz')
-
   call s:do_test('ds"b', '""', '')
   call s:do_test('ds"b', '"foo"', 'foo')
   call s:do_test('ds"b', '"foo "', 'foo')
@@ -171,16 +146,67 @@ function! s:test_surround_delete() abort
   call s:do_test('fbds"b', '"foo"bar"baz"', '"foobarbaz"')
   call s:do_test('2fbds"b', '"foo"bar"baz"', '"foo"barbaz')
   call s:do_test('$ds"b', '"foo"bar"baz"', '"foo"barbaz')
+
+  call s:do_test('dsb', '()', '')
+  call s:do_test('dsb', '(foo)', 'foo')
+  call s:do_test('dsb', '(foo )', 'foo')
+  call s:do_test('dsb', '( foo)', 'foo')
+  call s:do_test('dsb', '( foo )', 'foo')
+  call s:do_test('dsb', '(foo())', 'foo()')
+  call s:do_test('f(dsb', '(foo())', '(foo)')
+  call s:do_test('f(dsb', '  ()  ', '    ')
+  call s:do_test('f(dsb', '  (foo)  ', '  foo  ')
+
+  call s:do_test('dsb', '( \(foo )', '\(foo')
+  call s:do_test('dsb', '( foo\) )', 'foo\)')
+  call s:do_test('dsb', '( \(foo\) )', '\(foo\)')
+
+  call s:do_test('dsb', "(\na)", "\na")
+  call s:do_test('dsb', "(a\n)", 'a')
+  call s:do_test('dsb', "((\na))", "(\na)")
+  call s:do_test('dsb', "((a\n))", "(a\n)")
+
+  call s:do_test('$dsb', '()', '')
+  call s:do_test('$dsb', '(foo)', 'foo')
+  call s:do_test('$dsb', '(foo )', 'foo')
+  call s:do_test('$dsb', '( foo)', 'foo')
+  call s:do_test('$dsb', '( foo )', 'foo')
+  call s:do_test('$dsb', '(foo())', 'foo()')
+  call s:do_test('f)dsb', '(foo())', '(foo)')
+  call s:do_test('f)dsb', '  ()  ', '    ')
+  call s:do_test('f)dsb', '  (foo)  ', '  foo  ')
+
+  call s:do_test('ffdsb', '(foo)', 'foo')
+  call s:do_test('ffdsb', '(foo )', 'foo')
+  call s:do_test('ffdsb', '( foo)', 'foo')
+  call s:do_test('ffdsb', '( foo )', 'foo')
+  call s:do_test('ffdsb', '(foo())', 'foo()')
+  call s:do_test('ffdsb', '  (foo)  ', '  foo  ')
+
+  call s:do_test('dsbB', '(foo)bar(baz)', 'foobar(baz)')
+  call s:do_test('ffdsbB', '(foo)bar(baz)', 'foobar(baz)')
+  call s:do_test('f)dsbB', '(foo)bar(baz)', 'foobar(baz)')
+  call s:do_test('f(dsbB', '(foo)bar(baz)', '(foo)barbaz')
+  call s:do_test('2fbdsbB', '(foo)bar(baz)', '(foo)barbaz')
+  call s:do_test('$dsbB', '(foo)bar(baz)', '(foo)barbaz')
+
+  call s:do_test("dstdiv\<CR>", '<div></div>', '')
+  call s:do_test("dstdiv\<CR>", '<div>foo</div>', 'foo')
+  call s:do_test("dstdiv\<CR>", '<div>foo </div>', 'foo')
+  call s:do_test("dstdiv\<CR>", '<div> foo</div>', 'foo')
+  call s:do_test("dstdiv\<CR>", '<div> foo </div>', 'foo')
+  call s:do_test("dstdiv\<CR>", '<div>foo<div></div></div>', 'foo<div></div>')
+  call s:do_test("f<dstdiv\<CR>", '<div>foo<div></div></div>', '<div>foo</div>')
+  call s:do_test("f<dstdiv\<CR>", '  <div></div>  ', '    ')
+  call s:do_test("f<dstdiv\<CR>", '  <div>foo</div>  ', '  foo  ')
 endfunction
 
-function! s:do_test(keys, body, expected) abort
+function! s:do_test(key_sequences, source, expected) abort
   new
-  set smarttab
-  silent put =a:body
+  silent put =a:source
   1delete
   call cursor(1, 1)
-  execute 'normal' a:keys
-  call assert_equal(a:expected, join(getline(1, line('$')), "\n"), '')
-  set smarttab&
+  0verbose execute 'normal' a:key_sequences
+  call assert_equal(a:expected, join(getline(1, line('$')), "\n"))
   close!
 endfunction
