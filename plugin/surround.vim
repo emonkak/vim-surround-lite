@@ -11,8 +11,8 @@ if !exists('g:surround_objects')
   \   '%': { 'type': 'single', 'delimiter': '%' },
   \   '&': { 'type': 'single', 'delimiter': '&' },
   \   "'": { 'type': 'single', 'delimiter': "'" },
-  \   '(': { 'type': 'pair', 'start': '(', 'end': ')' },
-  \   ')': { 'type': 'pair', 'start': '(', 'end': ')' },
+  \   '(': { 'type': 'pair', 'delimiter': ['(', ')'] },
+  \   ')': { 'type': 'pair', 'delimiter': ['(', ')'] },
   \   '*': { 'type': 'single', 'delimiter': '*' },
   \   '+': { 'type': 'single', 'delimiter': '+' },
   \   ',': { 'type': 'single', 'delimiter': ',' },
@@ -21,25 +21,25 @@ if !exists('g:surround_objects')
   \   '/': { 'type': 'single', 'delimiter': '/' },
   \   ':': { 'type': 'single', 'delimiter': ':' },
   \   ';': { 'type': 'single', 'delimiter': ';' },
-  \   '<': { 'type': 'pair', 'start': '<', 'end': '>' },
+  \   '<': { 'type': 'pair', 'delimiter': ['<', '>'] },
   \   '=': { 'type': 'single', 'delimiter': '=' },
-  \   '>': { 'type': 'pair', 'start': '<', 'end': '>' },
+  \   '>': { 'type': 'pair', 'delimiter': ['<', '>'] },
   \   '?': { 'type': 'single', 'delimiter': '?' },
   \   '@': { 'type': 'single', 'delimiter': '@' },
-  \   'B': { 'type': 'pair', 'start': '{', 'end': '}' },
-  \   '[': { 'type': 'pair', 'start': '[', 'end': ']' },
+  \   'B': { 'type': 'pair', 'delimiter': ['{', '}'] },
+  \   '[': { 'type': 'pair', 'delimiter': ['[', ']'] },
   \   '\\': { 'type': 'single', 'delimiter': '\\' },
-  \   ']': { 'type': 'pair', 'start': '[', 'end': ']' },
+  \   ']': { 'type': 'pair', 'delimiter': ['[', ']'] },
   \   '^': { 'type': 'single', 'delimiter': '^' },
   \   '_': { 'type': 'single', 'delimiter': '_' },
   \   '`': { 'type': 'single', 'delimiter': '`' },
-  \   'a': { 'type': 'pair', 'start': '<', 'end': '>' },
-  \   'b': { 'type': 'pair', 'start': '(', 'end': ')' },
-  \   'r': { 'type': 'pair', 'start': '[', 'end': ']' },
-  \   't': { 'type': 'tag' },
-  \   '{': { 'type': 'pair', 'start': '{', 'end': '}' },
+  \   'a': { 'type': 'pair', 'delimiter': ['<', '>'] },
+  \   'b': { 'type': 'pair', 'delimiter': ['(', ')'] },
+  \   'r': { 'type': 'pair', 'delimiter': ['[', ']'] },
+  \   't': { 'type': 'pair', 'delimiter': function('surround#ask_tag_name') },
+  \   '{': { 'type': 'pair', 'delimiter': ['{', '}'] },
   \   '|': { 'type': 'single', 'delimiter': '|' },
-  \   '}': { 'type': 'pair', 'start': '{', 'end': '}' },
+  \   '}': { 'type': 'pair', 'delimiter': ['{', '}'] },
   \   '~': { 'type': 'single', 'delimiter': '~' },
   \ }
 endif
@@ -53,28 +53,34 @@ let s:KEY_NOTATION_TABLE = {
 
 function! s:define_operator(lhs, operator_func) abort
   execute 'nnoremap' '<expr>' a:lhs
-  \       'surround#do_operator_n(' . string(a:operator_func) . ')'
+  \       'surround#execute_operator_n(' . string(a:operator_func) . ')'
   execute 'vnoremap' '<expr>' a:lhs
-  \       'surround#do_operator_v(' . string(a:operator_func) . ')'
+  \       'surround#execute_operator_v(' . string(a:operator_func) . ')'
   execute 'onoremap' a:lhs 'g@'
 endfunction
 
 function! s:define_text_objects(kind) abort
   for [key, object] in items(g:surround_objects)
     if object.type ==# 'single'
+      let argument = type(object.delimiter) == v:t_func 
+      \            ? string(object.delimiter) . '()'
+      \            : string(escape(object.delimiter, '|'))
       let rhs = printf(':<C-u>call surround#textobj_single_%s(%s)<CR>',
       \                a:kind,
-      \                string(escape(object.delimiter, '|')))
+      \                argument)
     elseif object.type ==# 'pair'
-      let rhs = printf(':<C-u>call surround#textobj_pair_%s(%s, %s)<CR>',
-      \                a:kind,
-      \                string(escape(object.start, '|')),
-      \                string(escape(object.end, '|')))
-    elseif object.type ==# 'tag'
-      let rhs = printf(':<C-u>call surround#textobj_tag_%s(input("Tag Name: "))<CR>',
-      \                a:kind)
+      if type(object.delimiter) == v:t_func
+        let rhs = printf(':<C-u>call call(''surround#textobj_pair_%s'', %s)<CR>',
+        \                a:kind,
+        \                string(object.delimiter) . '()')
+      else
+        let rhs = printf(':<C-u>call surround#textobj_pair_%s(%s, %s)<CR>',
+        \                a:kind,
+        \                string(escape(object.delimiter[0], '|')),
+        \                string(escape(object.delimiter[1], '|')))
+      endif
     else
-      throw printf('Unexpected type "%s". Allowed values are "single", "pair" or "tag".',
+      throw printf('Unexpected type "%s". Allowed values are "single", "pair".',
       \            object.type)
     endif
     let lhs = printf('<Plug>(surround-textobj-%s:%s)',

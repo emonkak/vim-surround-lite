@@ -2,13 +2,20 @@ let s:last_operator_pair = 0
 
 let s:last_textobj_pair = 0
 
-function! surround#do_operator_n(operator_func) abort
+function! surround#ask_tag_name() abort
+  let tag_name = input('Tag Name: ')
+  let start = '<' . tag_name . '>'
+  let end = '</' . tag_name . '>'
+  return [start, end]
+endfunction
+
+function! surround#execute_operator_n(operator_func) abort
   call s:setup_operator(a:operator_func)
   let l:count = v:count ? v:count : ''
   return l:count . 'g@'
 endfunction
 
-function! surround#do_operator_v(operator_func) abort
+function! surround#execute_operator_v(operator_func) abort
   call s:setup_operator(a:operator_func)
   return 'g@'
 endfunction
@@ -79,24 +86,6 @@ function! surround#operator_delete(motion_wiseness) abort
   endif
 endfunction
 
-function! surround#textobj_single_a(delimiter) abort
-  let pattern = s:delimiter_pattern(a:delimiter)
-  let range = s:search_delimiter(pattern)
-  if range isnot 0
-    call s:select_outer(range[0], range[1])
-  endif
-  let s:last_textobj_pair = [a:delimiter, a:delimiter]
-endfunction
-
-function! surround#textobj_single_i(delimiter) abort
-  let pattern = s:delimiter_pattern(a:delimiter)
-  let range = s:search_delimiter(pattern)
-  if range isnot 0
-    call s:select_inner(range[0], range[1])
-  endif
-  let s:last_textobj_pair = [a:delimiter, a:delimiter]
-endfunction
-
 function! surround#textobj_pair_a(start, end) abort
   let start_pattern = s:delimiter_pattern(a:start)
   let end_pattern = s:delimiter_pattern(a:end)
@@ -117,6 +106,24 @@ function! surround#textobj_pair_i(start, end) abort
   let s:last_textobj_pair = [a:start, a:end]
 endfunction
 
+function! surround#textobj_single_a(delimiter) abort
+  let pattern = s:delimiter_pattern(a:delimiter)
+  let range = s:search_delimiter(pattern)
+  if range isnot 0
+    call s:select_outer(range[0], range[1])
+  endif
+  let s:last_textobj_pair = [a:delimiter, a:delimiter]
+endfunction
+
+function! surround#textobj_single_i(delimiter) abort
+  let pattern = s:delimiter_pattern(a:delimiter)
+  let range = s:search_delimiter(pattern)
+  if range isnot 0
+    call s:select_inner(range[0], range[1])
+  endif
+  let s:last_textobj_pair = [a:delimiter, a:delimiter]
+endfunction
+
 function! surround#textobj_tag_a(tag_name) abort
   let start = '<' . a:tag_name . '>'
   let end = '</' . a:tag_name . '>'
@@ -129,10 +136,17 @@ function! surround#textobj_tag_i(tag_name) abort
   return surround#textobj_pair_i(start, end)
 endfunction
 
-function! s:setup_operator(operator_func) abort
-  let &operatorfunc = a:operator_func
-  let s:last_operator_pair = 0
-  let s:last_textobj_pair = 0
+function s:new_undo_block() abort
+  " Create a new undo block to keep the cursor position when undo.
+  execute 'normal!' 'i ' . "\<Esc>" . '"_x'
+endfunction
+
+function! s:delimiter_pattern(delimiter) abort
+  if strchars(a:delimiter) > 1
+    return '\V' . escape(a:delimiter, '\\')
+  else
+    return '\V\%(\[^\\]\\\)\@<!' . escape(a:delimiter, '\\')
+  endif
 endfunction
 
 function! s:query_operator_pair() abort
@@ -150,19 +164,6 @@ endfunction
 
 function! s:query_textobj_pair() abort
   return s:last_textobj_pair is 0 ? ['', ''] : s:last_textobj_pair
-endfunction
-
-function! s:surround_object_to_pair(object) abort
-  if a:object.type ==# 'single'
-    return [a:object.delimiter, a:object.delimiter]
-  elseif a:object.type ==# 'pair'
-    return [a:object.start, a:object.end]
-  elseif a:object.type ==# 'tag'
-    let tag_name = input('Tag Name: ')
-    return ['<' . tag_name . '>', '</' . tag_name . '>']
-  else
-    return ['', '']
-  endif
 endfunction
 
 function! s:search_delimiter(pattern) abort
@@ -225,11 +226,12 @@ function! s:search_pair(start_pattern, end_pattern) abort
   return [start_pos, end_pos]
 endfunction
 
-function! s:delimiter_pattern(delimiter) abort
-  if strchars(a:delimiter) > 1
-    return '\V' . escape(a:delimiter, '\\')
-  else
-    return '\V\%(\[^\\]\\\)\@<!' . escape(a:delimiter, '\\')
+function! s:select_inner(start_pos, end_pos) abort
+  call cursor(a:start_pos)
+  normal! vlo
+  call cursor(a:end_pos)
+  if &selection !=# 'exclusive'
+    execute 'normal!' "\<BS>"
   endif
 endfunction
 
@@ -242,16 +244,22 @@ function! s:select_outer(start_pos, end_pos) abort
   endif
 endfunction
 
-function! s:select_inner(start_pos, end_pos) abort
-  call cursor(a:start_pos)
-  normal! vlo
-  call cursor(a:end_pos)
-  if &selection !=# 'exclusive'
-    execute 'normal!' "\<BS>"
-  endif
+function! s:setup_operator(operator_func) abort
+  let &operatorfunc = a:operator_func
+  let s:last_operator_pair = 0
+  let s:last_textobj_pair = 0
 endfunction
 
-function s:new_undo_block() abort
-  " Create a new undo block to keep the cursor position when undo.
-  execute 'normal!' 'i ' . "\<Esc>" . '"_x'
+function! s:surround_object_to_pair(object) abort
+  let delimiter = type(a:object.delimiter) == v:t_func
+  \             ? a:object.delimiter()
+  \             : a:object.delimiter
+  let delimiter_type = type(delimiter)
+  if delimiter_type == v:t_string
+    return [delimiter, delimiter]
+  elseif delimiter_type == v:t_list
+    return [delimiter[0], delimiter[1]]
+  else
+    return ['', '']
+  endif
 endfunction
