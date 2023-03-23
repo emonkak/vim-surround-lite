@@ -257,15 +257,17 @@ function! s:setup_operator(operator_func) abort
 endfunction
 
 function! s:surround_object_to_pair(object) abort
-  let delimiter = type(a:object.delimiter) == v:t_func
-  \             ? a:object.delimiter()
-  \             : a:object.delimiter
-  let delimiter_type = type(delimiter)
-  if delimiter_type == v:t_string
+  if a:object.type ==# 'single'
+    let delimiter = type(a:object.delimiter) == v:t_func
+    \             ? a:object.delimiter()
+    \             : a:object.delimiter
     return [delimiter, delimiter]
-  elseif delimiter_type == v:t_list
-    return [delimiter[0], delimiter[1]]
-  else
-    return ['', '']
   endif
+  if a:object.type ==# 'pair'
+    let delimiter = type(a:object.delimiter) == v:t_func
+    \             ? a:object.delimiter()
+    \             : a:object.delimiter
+    return delimiter
+  endif
+  return ['', '']
 endfunction

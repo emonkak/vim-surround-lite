@@ -3,7 +3,11 @@ if exists('g:loaded_surround')
 endif
 
 if !exists('g:surround_objects')
-  let g:surround_objects = {
+  let g:surround_objects = {}
+endif
+
+if !get(g:, 'surround_no_default_objects', 0)
+  call extend(g:surround_objects, {
   \   '!': { 'type': 'single', 'delimiter': '!' },
   \   '"': { 'type': 'single', 'delimiter': '"' },
   \   '#': { 'type': 'single', 'delimiter': '#' },
@@ -41,7 +45,7 @@ if !exists('g:surround_objects')
   \   '|': { 'type': 'single', 'delimiter': '|' },
   \   '}': { 'type': 'pair', 'delimiter': ['{', '}'] },
   \   '~': { 'type': 'single', 'delimiter': '~' },
-  \ }
+  \ }, 'keep')
 endif
 
 let s:KEY_NOTATION_TABLE = {
@@ -79,8 +83,10 @@ function! s:define_text_objects(kind) abort
         \                string(escape(object.delimiter[0], '|')),
         \                string(escape(object.delimiter[1], '|')))
       endif
+    elseif object.type ==# 'nop'
+      continue
     else
-      throw printf('Unexpected type "%s". Allowed values are "single", "pair".',
+      throw printf('Unexpected type "%s". Allowed values are "single", "pair" or "nop".',
       \            object.type)
     endif
     let lhs = printf('<Plug>(surround-textobj-%s:%s)',
@@ -96,15 +102,17 @@ function! s:define_plugin_mappings() abort
   map <Plug>(surround-change)  <Nop>
   map <Plug>(surround-remove)  <Nop>
 
-  for key in keys(g:surround_objects)
-    let textobj = '<Plug>(surround-textobj-a:' . escape(key, '|')  . ')'
-    let key_notation = get(s:KEY_NOTATION_TABLE, key, key)
-    execute 'nmap <silent>'
-    \       ('<Plug>(surround-change)' . key_notation)
-    \       ('<SID>(operator-change)' . textobj)
-    execute 'nmap <silent>'
-    \       ('<Plug>(surround-delete)' . key_notation)
-    \       ('<SID>(operator-delete)' . textobj)
+  for [key, object] in items(g:surround_objects)
+    if object.type ==# 'single' || object.type ==# 'pair'
+      let textobj = '<Plug>(surround-textobj-a:' . escape(key, '|')  . ')'
+      let key_notation = get(s:KEY_NOTATION_TABLE, key, key)
+      execute 'nmap <silent>'
+      \       ('<Plug>(surround-change)' . key_notation)
+      \       ('<SID>(operator-change)' . textobj)
+      execute 'nmap <silent>'
+      \       ('<Plug>(surround-delete)' . key_notation)
+      \       ('<SID>(operator-delete)' . textobj)
+    endif
   endfor
 endfunction
 
