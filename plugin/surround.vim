@@ -91,36 +91,33 @@ function! s:define_text_objects(kind) abort
   endfor
 endfunction
 
-function! s:define_default_key_mappings() abort
-  nmap ys  <Plug>(surround-operator-add)
-
-  nnoremap cs  <Nop>
-  nnoremap ds  <Nop>
+function! s:define_plugin_mappings() abort
+  map <silent> <Plug>(surround-add)  <SID>(operator-add)
+  map <Plug>(surround-change)  <Nop>
+  map <Plug>(surround-remove)  <Nop>
 
   for key in keys(g:surround_objects)
     let textobj = '<Plug>(surround-textobj-a:' . escape(key, '|')  . ')'
     let key_notation = get(s:KEY_NOTATION_TABLE, key, key)
-    execute 'nmap'
-    \       ('cs' . key_notation)
-    \       ('<Plug>(surround-operator-change)' . textobj)
-    execute 'nmap'
-    \       ('ds' . key_notation)
-    \       ('<Plug>(surround-operator-delete)' . textobj)
+    execute 'nmap <silent>'
+    \       ('<Plug>(surround-change)' . key_notation)
+    \       ('<SID>(operator-change)' . textobj)
+    execute 'nmap <silent>'
+    \       ('<Plug>(surround-delete)' . key_notation)
+    \       ('<SID>(operator-delete)' . textobj)
   endfor
 endfunction
 
-call s:define_operator('<Plug>(surround-operator-add)',
+call s:define_operator('<SID>(operator-add)',
 \                      'surround#operator_add')
-call s:define_operator('<Plug>(surround-operator-change)',
+call s:define_operator('<SID>(operator-change)',
 \                      'surround#operator_change')
-call s:define_operator('<Plug>(surround-operator-delete)',
+call s:define_operator('<SID>(operator-delete)',
 \                      'surround#operator_delete')
 
 call s:define_text_objects('a')
 call s:define_text_objects('i')
 
-if !get(g:, 'surround_no_default_key_mappings', 0)
-  call s:define_default_key_mappings()
-endif
+call s:define_plugin_mappings()
 
 let g:loaded_surround = 1

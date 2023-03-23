@@ -203,6 +203,9 @@ endfunction
 
 function! s:do_test(key_sequences, source, expected) abort
   new
+  map <buffer> ys  <Plug>(surround-add)
+  nmap <buffer> cs  <Plug>(surround-change)
+  nmap <buffer> ds  <Plug>(surround-delete)
   silent put =a:source
   1delete
   call cursor(1, 1)
