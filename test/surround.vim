@@ -29,7 +29,7 @@ function! s:test_surround_change() abort
   call s:do_test('cs"b', '" foo"', '( foo)')
   call s:do_test('cs"b', '" foo "', '( foo )')
   call s:do_test('cs"b', '" \"foo\" "', '( \"foo\" )')
-  call s:do_test('cs"b', '" \\foo\\ "', '( \\foo\\ )')
+  call s:do_test('cs"b', '" \foo\ "', '( \foo\ )')
   call s:do_test('f"cs"b', '  "foo"  ', '  (foo)  ')
 
   call s:do_test('$cs"b', '""', '()')
@@ -38,7 +38,7 @@ function! s:test_surround_change() abort
   call s:do_test('$cs"b', '" foo"', '( foo)')
   call s:do_test('$cs"b', '" foo "', '( foo )')
   call s:do_test('$cs"b', '" \"foo\" "', '( \"foo\" )')
-  call s:do_test('$cs"b', '" \\foo\\ "', '( \\foo\\ )')
+  call s:do_test('$cs"b', '" \foo\ "', '( \foo\ )')
   call s:do_test('2f"cs"b', '  "foo"  ', '  (foo)  ')
 
   call s:do_test('ffcs"b', '"foo"', '(foo)')
@@ -46,7 +46,7 @@ function! s:test_surround_change() abort
   call s:do_test('ffcs"b', '" foo"', '( foo)')
   call s:do_test('ffcs"b', '" foo "', '( foo )')
   call s:do_test('ffcs"b', '" \"foo\" "', '( \"foo\" )')
-  call s:do_test('ffcs"b', '" \\foo\\ "', '( \\foo\\ )')
+  call s:do_test('ffcs"b', '" \foo\ "', '( \foo\ )')
   call s:do_test('f"cs"b', '" \"foo\" "', '( \"foo\" )')
   call s:do_test('2f"cs"b', '" \"foo\" "', '( \"foo\" )')
   call s:do_test('ffcs"b', '  "foo"  ', '  (foo)  ')
@@ -119,7 +119,7 @@ function! s:test_surround_delete() abort
   call s:do_test('ds"b', '" foo"', 'foo')
   call s:do_test('ds"b', '" foo "', 'foo')
   call s:do_test('ds"b', '" \"foo\" "', '\"foo\"')
-  call s:do_test('ds"b', '" \\foo\\ "', '\\foo\\')
+  call s:do_test('ds"b', '" \foo\ "', '\foo\')
   call s:do_test('f"ds"b', '  "foo"  ', '  foo  ')
 
   call s:do_test('$ds"b', '""', '')
@@ -128,7 +128,7 @@ function! s:test_surround_delete() abort
   call s:do_test('$ds"b', '" foo"', 'foo')
   call s:do_test('$ds"b', '" foo "', 'foo')
   call s:do_test('$ds"b', '" \"foo\" "', '\"foo\"')
-  call s:do_test('$ds"b', '" \\foo\\ "', '\\foo\\')
+  call s:do_test('$ds"b', '" \foo\ "', '\foo\')
   call s:do_test('2f"ds"b', '  "foo"  ', '  foo  ')
 
   call s:do_test('ffds"b', '"foo"', 'foo')
@@ -136,7 +136,7 @@ function! s:test_surround_delete() abort
   call s:do_test('ffds"b', '" foo"', 'foo')
   call s:do_test('ffds"b', '" foo "', 'foo')
   call s:do_test('ffds"b', '" \"foo\" "', '\"foo\"')
-  call s:do_test('ffds"b', '" \\foo\\ "', '\\foo\\')
+  call s:do_test('ffds"b', '" \foo\ "', '\foo\')
   call s:do_test('ffds"b', '  "foo"  ', '  foo  ')
 
   call s:do_test('ds"b', '"foo"bar"baz"', 'foobar"baz"')
@@ -201,15 +201,14 @@ function! s:test_surround_delete() abort
   call s:do_test("f<dstdiv\<CR>", '  <div>foo</div>  ', '  foo  ')
 endfunction
 
-function! s:do_test(key_sequences, source, expected) abort
+function! s:do_test(key_sequences, source, expected_result) abort
   new
   map <buffer> ys  <Plug>(surround-add)
   nmap <buffer> cs  <Plug>(surround-change)
   nmap <buffer> ds  <Plug>(surround-delete)
   silent put =a:source
-  1delete
-  call cursor(1, 1)
+  normal! ggdd0
   0verbose execute 'normal' a:key_sequences
-  call assert_equal(a:expected, join(getline(1, line('$')), "\n"))
+  call assert_equal(a:expected_result, join(getline(1, line('$')), "\n"))
   close!
 endfunction

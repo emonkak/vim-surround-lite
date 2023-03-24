@@ -32,7 +32,7 @@ if !get(g:, 'surround_no_default_objects', 0)
   \   '@': { 'type': 'single', 'delimiter': '@' },
   \   'B': { 'type': 'pair', 'delimiter': ['{', '}'] },
   \   '[': { 'type': 'pair', 'delimiter': ['[', ']'] },
-  \   '\\': { 'type': 'single', 'delimiter': '\\' },
+  \   '\': { 'type': 'single', 'delimiter': '\' },
   \   ']': { 'type': 'pair', 'delimiter': ['[', ']'] },
   \   '^': { 'type': 'single', 'delimiter': '^' },
   \   '_': { 'type': 'single', 'delimiter': '_' },
@@ -50,7 +50,7 @@ endif
 
 let s:KEY_NOTATION_TABLE = {
 \   '|': '<Bar>',
-\   '\\': '<Bslash>',
+\   '\': '<Bslash>',
 \   '<': '<Lt>',
 \   ' ': '<Space>',
 \ }
