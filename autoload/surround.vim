@@ -44,24 +44,24 @@ function! surround#operator_add(motion_wiseness) abort
 endfunction
 
 function! surround#operator_change(motion_wiseness) abort
-  let [before_head, before_tail] = s:query_textobj_pair()
-  let [after_head, after_tail] = s:query_operator_pair()
+  let [old_head, old_tail] = s:query_textobj_pair()
+  let [new_head, new_tail] = s:query_operator_pair()
 
   let head_pos = getpos("'[")[1:]
   let tail_pos = getpos("']")[1:]
 
-  let before_head_count = max([1, strchars(before_head)])
-  let before_tail_count = max([1, strchars(before_tail)])
+  let head_length = strchars(old_head)
+  let tail_length = strchars(old_tail)
 
   call s:create_undo_block()
 
   call cursor(tail_pos)
-  execute 'normal!' '"_c' . before_tail_count . 'l'
-  \                       . "\<C-r>=after_tail\<CR>\<Esc>"
+  execute 'normal!' '"_c' . tail_length . 'l'
+  \                       . "\<C-r>=new_tail\<CR>\<Esc>"
 
   call cursor(head_pos)
-  execute 'normal!' '"_c' . before_head_count . 'l'
-  \                       . "\<C-r>=after_head\<CR>\<Esc>"
+  execute 'normal!' '"_c' . head_length . 'l'
+  \                       . "\<C-r>=new_head\<CR>\<Esc>"
 endfunction
 
 function! surround#operator_delete(motion_wiseness) abort
@@ -70,22 +70,22 @@ function! surround#operator_delete(motion_wiseness) abort
   let head_pos = getpos("'[")[1:]
   let tail_pos = getpos("']")[1:]
 
-  let head_count = max([1, strchars(head)])
-  let tail_count = max([1, strchars(tail)])
+  let head_length = strchars(head)
+  let tail_length = strchars(tail)
 
   call s:create_undo_block()
 
   call cursor(tail_pos)
-  execute 'normal!' tail_count . 'r vgel"_x'
+  execute 'normal!' tail_length . 'r vgel"_x'
 
   let cursor_pos = getpos('.')[1:]
   if head_pos[0] == cursor_pos[0]
-  \  && head_pos[1] + head_count == cursor_pos[1]
+  \  && head_pos[1] + head_length == cursor_pos[1]
     " The cursor position is the same as the head position.
-    execute 'normal!' '"_d' . head_count . 'h'
+    execute 'normal!' '"_d' . head_length . 'h'
   else
     call cursor(head_pos)
-    execute 'normal!' . head_count . 'r `["_dw'
+    execute 'normal!' . head_length . 'r `["_dw'
   endif
 endfunction
 
