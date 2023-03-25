@@ -127,18 +127,6 @@ function! surround#textobj_single_i(edge) abort
   let s:last_textobj_pair = [a:edge, a:edge]
 endfunction
 
-function! surround#textobj_tag_a(tag_name) abort
-  let head = '<' . a:tag_name . '>'
-  let tail = '</' . a:tag_name . '>'
-  return surround#textobj_pair_a(head, tail)
-endfunction
-
-function! surround#textobj_tag_i(tag_name) abort
-  let head = '<' . a:tag_name . '>'
-  let tail = '</' . a:tag_name . '>'
-  return surround#textobj_pair_i(head, tail)
-endfunction
-
 function! s:create_undo_block() abort
   " Create a new undo block to keep the cursor position when undo.
   execute 'normal!' 'i ' . "\<Esc>" . '"_x'
