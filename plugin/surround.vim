@@ -40,7 +40,7 @@ if !get(g:, 'surround_no_default_objects', 0)
   \   'a': { 'type': 'pair', 'delimiter': ['<', '>'] },
   \   'b': { 'type': 'pair', 'delimiter': ['(', ')'] },
   \   'r': { 'type': 'pair', 'delimiter': ['[', ']'] },
-  \   't': { 'type': 'pair', 'delimiter': function('surround#ask_tag_name') },
+  \   't': { 'type': 'pair', 'delimiter': function('surround#ask_tag_name'), 'pattern': ['<\%(\a[^>]*\)\?>', '</[^>]*>'] },
   \   '{': { 'type': 'pair', 'delimiter': ['{', '}'] },
   \   '|': { 'type': 'single', 'delimiter': '|' },
   \   '}': { 'type': 'pair', 'delimiter': ['{', '}'] },
@@ -66,22 +66,29 @@ endfunction
 function! s:define_text_objects(kind) abort
   for [key, object] in items(g:surround_objects)
     if object.type ==# 'single'
-      let argument = type(object.delimiter) == v:t_func 
-      \            ? string(object.delimiter) . '()'
-      \            : string(escape(object.delimiter, '|'))
+      let arguments = has_key(object, 'pattern')
+      \             ? string(object.pattern)
+      \             : type(object.delimiter) == v:t_func
+      \             ? string(object.delimiter) . '()'
+      \             : string(s:make_pattern(object.delimiter))
       let rhs = printf(':<C-u>call surround#textobj_single_%s(%s)<CR>',
       \                a:kind,
-      \                argument)
+      \                escape(arguments, '|'))
     elseif object.type ==# 'pair'
-      if type(object.delimiter) == v:t_func
-        let rhs = printf(':<C-u>call call(''surround#textobj_pair_%s'', %s)<CR>',
-        \                a:kind,
-        \                string(object.delimiter) . '()')
+      let arguments = has_key(object, 'pattern')
+      \             ? join(map(copy(object.pattern), 'string(v:val)'), ', ')
+      \             : type(object.delimiter) == v:t_func
+      \             ? string(object.delimiter) . '()'
+      \             : join(map(copy(object.delimiter),
+      \                        'string(s:make_pattern(v:val))'), ', ')
+      if arguments[-2:-1] ==# '()'
+        let rhs = printf(':<C-u>call call(%s, %s)<CR>',
+        \                string('surround#textobj_pair_' . a:kind),
+        \                escape(arguments, '|'))
       else
-        let rhs = printf(':<C-u>call surround#textobj_pair_%s(%s, %s)<CR>',
+        let rhs = printf(':<C-u>call surround#textobj_pair_%s(%s)<CR>',
         \                a:kind,
-        \                string(escape(object.delimiter[0], '|')),
-        \                string(escape(object.delimiter[1], '|')))
+        \                escape(arguments, '|'))
       endif
     elseif object.type ==# 'nop'
       continue
@@ -114,6 +121,14 @@ function! s:define_plugin_mappings() abort
       \       ('<SID>(operator-delete)' . textobj)
     endif
   endfor
+endfunction
+
+function! s:make_pattern(delimiter) abort
+  if strchars(a:delimiter) > 1
+    return '\V' . escape(a:delimiter, '\')
+  else
+    return '\V\%(\[^\\]\\\)\@<!' . escape(a:delimiter, '\')
+  endif
 endfunction
 
 call s:define_operator('<SID>(operator-add)',

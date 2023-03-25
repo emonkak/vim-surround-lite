@@ -1,6 +1,8 @@
-let s:last_operator_pair = 0
+let s:is_running_operator = 0
 
-let s:last_textobj_pair = 0
+let s:last_operator_delimiters = 0
+
+let s:last_textobj_patterns = 0
 
 function! surround#ask_tag_name() abort
   let tag_name = input('Tag Name: ')
@@ -21,110 +23,117 @@ function! surround#execute_operator_v(operator_func) abort
 endfunction
 
 function! surround#operator_add(motion_wiseness) abort
-  let [head, tail] = s:query_operator_pair()
-
-  if a:motion_wiseness ==# 'line'
-    let append_command = 'A'
-    let insert_command = 'I'
-  else
-    let append_command = 'a'
-    let insert_command = 'i'
+  let delimiters = s:ask_operator_delimiters()
+  if type(delimiters) == v:t_list
+    call s:add_surround(delimiters[0], delimiters[1])
   endif
-
-  let head_pos = getpos("'[")[1:]
-  let tail_pos = getpos("']")[1:]
-
-  call s:create_undo_block()
-
-  call cursor(tail_pos)
-  execute 'normal!' append_command . "\<C-r>=tail\<CR>\<Esc>"
-
-  call cursor(head_pos)
-  execute 'normal!' insert_command . "\<C-r>=head\<CR>\<Esc>"
+  let s:is_running_operator = 0
 endfunction
 
 function! surround#operator_change(motion_wiseness) abort
-  let [old_head, old_tail] = s:query_textobj_pair()
-  let [new_head, new_tail] = s:query_operator_pair()
-
-  let head_pos = getpos("'[")[1:]
-  let tail_pos = getpos("']")[1:]
-
-  let head_length = strchars(old_head)
-  let tail_length = strchars(old_tail)
-
-  call s:create_undo_block()
-
-  call cursor(tail_pos)
-  execute 'normal!' '"_c' . tail_length . 'l'
-  \                       . "\<C-r>=new_tail\<CR>\<Esc>"
-
-  call cursor(head_pos)
-  execute 'normal!' '"_c' . head_length . 'l'
-  \                       . "\<C-r>=new_head\<CR>\<Esc>"
+  if s:last_textobj_patterns isnot 0
+    let [start_pattern, end_pattern] = s:last_textobj_patterns
+    let delimiters = s:ask_operator_delimiters()
+    if type(delimiters) == v:t_list
+      call s:change_surround(start_pattern, end_pattern, delimiters[0], delimiters[1])
+    endif
+  endif
+  let s:is_running_operator = 0
 endfunction
 
 function! surround#operator_delete(motion_wiseness) abort
-  let [head, tail] = s:query_textobj_pair()
+  if s:last_textobj_patterns isnot 0
+    let [start_pattern, end_pattern] = s:last_textobj_patterns
+    call s:delete_surround(start_pattern, end_pattern)
+  endif
+  let s:is_running_operator = 0
+endfunction
 
-  let head_pos = getpos("'[")[1:]
-  let tail_pos = getpos("']")[1:]
+function! surround#textobj_pair_a(start_pattern, end_pattern) abort
+  let range = s:search_surrounded_block(a:start_pattern, a:end_pattern, 1)
+  if range isnot 0
+    call s:select_outer(range[0], range[1])
+    if s:is_running_operator
+      let s:last_textobj_patterns = [a:start_pattern, a:end_pattern]
+    endif
+  endif
+endfunction
 
-  let head_length = strchars(head)
-  let tail_length = strchars(tail)
+function! surround#textobj_pair_i(start_pattern, end_pattern) abort
+  let range = s:search_surrounded_block(a:start_pattern, a:end_pattern, 0)
+  if range isnot 0
+    call s:select_inner(range[0], range[1])
+    if s:is_running_operator
+      let s:last_textobj_patterns = [a:start_pattern, a:end_pattern]
+    endif
+  endif
+endfunction
+
+function! surround#textobj_single_a(edge_pattern) abort
+  let range = s:search_surrounded_text(a:edge_pattern, 1)
+  if range isnot 0
+    call s:select_outer(range[0], range[1])
+    if s:is_running_operator
+      let s:last_textobj_patterns = [a:edge_pattern, a:edge_pattern]
+    endif
+  endif
+endfunction
+
+function! surround#textobj_single_i(edge_pattern) abort
+  let range = s:search_surrounded_text(a:edge_pattern, 0)
+  if range isnot 0
+    call s:select_inner(range[0], range[1])
+    if s:is_running_operator
+      let s:last_textobj_patterns = [a:edge_pattern, a:edge_pattern]
+    endif
+  endif
+endfunction
+
+function! s:add_surround(start_delimiter, end_delimiter) abort
+  let start_pos = getpos("'[")[1:]
+  let end_pos = getpos("']")[1:]
 
   call s:create_undo_block()
 
-  call cursor(tail_pos)
-  execute 'normal!' tail_length . 'r vgel"_x'
+  call cursor(end_pos)
+  call s:put_text_at_cursor('p', a:end_delimiter)
 
-  let cursor_pos = getpos('.')[1:]
-  if head_pos[0] == cursor_pos[0]
-  \  && head_pos[1] + head_length == cursor_pos[1]
-    " The cursor position is the same as the head position.
-    execute 'normal!' '"_d' . head_length . 'h'
-  else
-    call cursor(head_pos)
-    execute 'normal!' . head_length . 'r `["_dw'
-  endif
+  call cursor(start_pos)
+  call s:put_text_at_cursor('P', a:start_delimiter)
 endfunction
 
-function! surround#textobj_pair_a(head, tail) abort
-  let head_pattern = s:make_delimiter_pattern(a:head)
-  let tail_pattern = s:make_delimiter_pattern(a:tail)
-  let range = s:search_pair(head_pattern, tail_pattern)
-  if range isnot 0
-    call s:select_outer(range[0], range[1])
+function! s:ask_operator_delimiters() abort
+  if s:last_operator_delimiters is 0
+    let char = nr2char(getchar())
+    if has_key(g:surround_objects, char)
+      let object = g:surround_objects[char]
+      let s:last_operator_delimiters = s:surround_object_to_delimiters(object)
+    else
+      let s:last_operator_delimiters = -1
+    endif
   endif
-  let s:last_textobj_pair = [a:head, a:tail]
+  return s:last_operator_delimiters
 endfunction
 
-function! surround#textobj_pair_i(head, tail) abort
-  let head_pattern = s:make_delimiter_pattern(a:head)
-  let tail_pattern = s:make_delimiter_pattern(a:tail)
-  let range = s:search_pair(head_pattern, tail_pattern)
-  if range isnot 0
-    call s:select_inner(range[0], range[1])
-  endif
-  let s:last_textobj_pair = [a:head, a:tail]
-endfunction
+function! s:change_surround(start_pattern, end_pattern, start_delimiter, end_delimiter) abort
+  let start_head = getpos("'[")[1:]
+  let end_tail = getpos("']")[1:]
 
-function! surround#textobj_single_a(edge) abort
-  let pattern = s:make_delimiter_pattern(a:edge)
-  let range = s:search_delimiter(pattern)
-  if range isnot 0
-    call s:select_outer(range[0], range[1])
+  let end_head = s:search_backward(a:end_pattern, end_tail)
+  if end_head is 0
+    return
   endif
-  let s:last_textobj_pair = [a:edge, a:edge]
-endfunction
 
-function! surround#textobj_single_i(edge) abort
-  let pattern = s:make_delimiter_pattern(a:edge)
-  let range = s:search_delimiter(pattern)
-  if range isnot 0
-    call s:select_inner(range[0], range[1])
+  call s:select_outer(end_head, end_tail)
+  call s:put_text_at_cursor('p', a:end_delimiter)
+
+  let start_tail = s:search_forward(a:start_pattern, start_head)
+  if start_tail is 0
+    return
   endif
-  let s:last_textobj_pair = [a:edge, a:edge]
+
+  call s:select_outer(start_head, start_tail)
+  call s:put_text_at_cursor('p', a:start_delimiter)
 endfunction
 
 function! s:create_undo_block() abort
@@ -132,97 +141,199 @@ function! s:create_undo_block() abort
   execute 'normal!' 'i ' . "\<Esc>" . '"_x'
 endfunction
 
-function! s:make_delimiter_pattern(delimiter) abort
-  if strchars(a:delimiter) > 1
-    return '\V' . escape(a:delimiter, '\\')
+function! s:delete_surround(start_pattern, end_pattern) abort
+  let start_pattern = a:start_pattern . '\m\s*'
+  let end_pattern = '\s*' . a:end_pattern
+
+  let start_head = getpos("'[")[1:]
+  let end_tail = getpos("']")[1:]
+
+  let end_head = s:search_backward(end_pattern, end_tail)
+  if end_head is 0
+    return
+  endif
+
+  call s:select_outer(end_head, end_tail)
+  normal! "_d
+
+  let start_tail = s:search_forward(start_pattern, start_head)
+  if start_tail is 0
+    return
+  endif
+
+  if start_tail[0] > end_head[0]
+  \  || (start_tail[0] == end_head[0] && start_tail[1] >= end_head[1])
+    " The head of tail position overlaps the tail of head position.
+    call s:select_outer(start_head, end_head)
+    execute 'normal!' "\<BS>"
   else
-    return '\V\%(\[^\\]\\\)\@<!' . escape(a:delimiter, '\\')
+    call s:select_outer(start_head, start_tail)
   endif
+  normal! "_d
 endfunction
 
-function! s:query_operator_pair() abort
-  if s:last_operator_pair is 0
-    let char = nr2char(getchar())
-    if has_key(g:surround_objects, char)
-      let object = g:surround_objects[char]
-      let s:last_operator_pair = s:surround_object_to_pair(object)
-    else
-      let s:last_operator_pair = ['', '']
-    endif
-  endif
-  return s:last_operator_pair
-endfunction
-
-function! s:query_textobj_pair() abort
-  return s:last_textobj_pair is 0 ? ['', ''] : s:last_textobj_pair
-endfunction
-
-function! s:search_delimiter(pattern) abort
-  let cursor = getpos('.')[1:]
-
-  " Move the cursor to the the first character of the current line.
-  call cursor(0, 1)
-
+function! s:put_text_at_cursor(put_command, text) abort
+  let reg_value = @"
+  let reg_type = getregtype('"')
   try
-    let current_pos = searchpos(a:pattern, 'Wc', cursor[0])
-    if current_pos == [0, 0]
-      return 0
-    endif
-
-    let in_quote = 1
-
-    while 1
-      let next_pos = searchpos(a:pattern, 'W', cursor[0])
-      if next_pos == [0, 0]
-        return 0
-      endif
-
-      if in_quote
-        if current_pos[1] <= cursor[1] && cursor[1] <= next_pos[1]
-          return [current_pos, next_pos]
-        endif
-      else
-        if current_pos[1] < cursor[1] && cursor[1] < next_pos[1]
-          return [current_pos, next_pos]
-        endif
-      endif
-
-      let current_pos = next_pos
-      let in_quote = !in_quote
-    endwhile
+    call setreg('"', a:text, 'v')
+    execute 'normal!' ('""' . a:put_command)
   finally
-    call cursor(cursor)
+    call setreg('"', reg_value, reg_type)
   endtry
 endfunction
 
-function! s:search_pair(start_pattern, end_pattern) abort
-  if search('\%#' . a:end_pattern, 'cn') > 0
-    let start_flags = 'Wbn'
-    let end_flags = 'Wcn'
+function! s:search_backward(pattern, initial_pos) abort
+  let old_virtualedit = &l:virtualedit
+
+  setlocal virtualedit=all
+
+  try
+    let pattern = a:pattern . '\%#'
+
+    " Move the cursor one character to the right to match the pattern.
+    call cursor(a:initial_pos[0], a:initial_pos[1] + 1, 1)
+
+    let pos = searchpos(pattern, 'Wbc')
+    if pos == [0, 0]
+      return 0
+    endif
+
+    return pos
+  finally
+    let &l:virtualedit = old_virtualedit
+  endtry
+
+  return pos
+endfunction
+
+function! s:search_edges(pattern, flags, stopline) abort
+  let head = searchpos(a:pattern, a:flags, a:stopline)
+  if head == [0, 0]
+    return 0
+  endif
+
+  let tail = searchpos('\%#' . a:pattern, 'Wcen')
+  if tail == [0, 0]
+    return 0
+  endif
+
+  return [head, tail]
+endfunction
+
+function! s:search_forward(pattern, initial_pos) abort
+  let pattern = '\%#' . a:pattern
+
+  call cursor(a:initial_pos)
+
+  let pos = searchpos(pattern, 'Wce')
+  if pos == [0, 0]
+    return 0
+  endif
+
+  return pos
+endfunction
+
+function! s:search_surrounded_block(start_pattern, end_pattern, is_outer) abort
+  let cursor = getpos('.')[1:]
+
+  " BUGS: It dosen't work when the pattern contained newline characters.
+  let end_edges = s:search_edges(a:end_pattern, 'Wbc', cursor[0])
+  if end_edges is 0
+    let in_end_delimiter = 0
   else
-    let start_flags = 'Wbcn'
-    let end_flags = 'Wn'
+    if end_edges[0][1] <= cursor[1] && cursor[1] <= end_edges[1][1]
+      let in_end_delimiter = 1
+    else
+      let in_end_delimiter = 0
+      call cursor(cursor)
+    endif
   endif
 
-  let start_pos = searchpairpos(a:start_pattern,
-  \                             '',
-  \                             a:end_pattern,
-  \                             start_flags)
-  if start_pos == [0, 0]
+  if in_end_delimiter
+    let [end_head, end_tail] = end_edges
+
+    let start_head = searchpairpos(a:start_pattern, '', a:end_pattern, 'Wb')
+    if start_head == [0, 0]
+      call cursor(cursor)
+      return 0
+    endif
+
+    if a:is_outer
+      let start = start_head
+      let end = end_tail
+    else
+      let start = searchpos('\%#' . a:start_pattern, 'Wecn')
+      let end = end_head
+    endif
+  else
+    let end_head = searchpairpos(a:start_pattern, '', a:end_pattern, 'W')
+    if end_head == [0, 0]
+      return 0
+    endif
+
+    let end = a:is_outer
+    \       ? searchpos('\%#' . a:end_pattern, 'Wcen')
+    \       : end_head
+
+    let start_head = searchpairpos(a:start_pattern, '', a:end_pattern, 'Wb')
+    if start_head == [0, 0]
+      call cursor(cursor)
+      return 0
+    endif
+
+    let start = a:is_outer
+    \         ? start_head
+    \         : searchpos('\%#' . a:start_pattern, 'Wecn')
+  endif
+
+  return [start, end]
+endfunction
+
+function! s:search_surrounded_text(edge_pattern, is_outer) abort
+  let cursor = getpos('.')[1:]
+
+  " Move the cursor to the the first column of the current line.
+  normal! 0
+
+  let start_edges = s:search_edges(a:edge_pattern, 'Wc', cursor[0])
+  if start_edges is 0
     return 0
   endif
 
-  let end_pos = searchpairpos(a:start_pattern, '', a:end_pattern, end_flags)
-  if end_pos == [0, 0]
-    return 0
-  endif
+  let [start_head, start_tail] = start_edges
+  let is_opened = 1
 
-  return [start_pos, end_pos]
+  while 1
+    let end_edges = s:search_edges(a:edge_pattern, 'W', cursor[0])
+    if end_edges is 0
+      call cursor(cursor)
+      return 0
+    endif
+
+    let [end_head, end_tail] = end_edges
+
+    if is_opened
+      if start_head[1] <= cursor[1] && cursor[1] <= end_tail[1]
+        break
+      endif
+    else
+      if start_head[1] < cursor[1] && cursor[1] < end_tail[1]
+        break
+      endif
+    endif
+
+    let start_head = end_head
+    let start_tail = end_tail
+    let is_opened = !is_opened
+  endwhile
+
+  return a:is_outer ? [start_head, end_tail] : [start_tail, end_head]
 endfunction
 
 function! s:select_inner(start_pos, end_pos) abort
   call cursor(a:start_pos)
-  normal! vlo
+  normal! v o
   call cursor(a:end_pos)
   if &selection !=# 'exclusive'
     execute 'normal!' "\<BS>"
@@ -234,17 +345,18 @@ function! s:select_outer(start_pos, end_pos) abort
   normal! v
   call cursor(a:end_pos)
   if &selection ==# 'exclusive'
-    normal! l
+    execute 'normal!' ' '
   endif
 endfunction
 
 function! s:setup_operator(operator_func) abort
   let &operatorfunc = a:operator_func
-  let s:last_operator_pair = 0
-  let s:last_textobj_pair = 0
+  let s:is_running_operator = 1
+  let s:last_operator_delimiters = 0
+  let s:last_textobj_patterns = 0
 endfunction
 
-function! s:surround_object_to_pair(object) abort
+function! s:surround_object_to_delimiters(object) abort
   if a:object.type ==# 'single'
     let delimiter = type(a:object.delimiter) == v:t_func
     \             ? a:object.delimiter()

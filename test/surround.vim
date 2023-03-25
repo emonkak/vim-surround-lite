@@ -1,3 +1,8 @@
+let g:surround_objects = {
+\   'u': { 'type': 'single', 'delimiter': '_' },
+\   'U': { 'type': 'single', 'delimiter': '__' },
+\ }
+
 runtime! plugin/surround.vim
 
 function! s:test_surround_add() abort
@@ -20,6 +25,9 @@ function! s:test_surround_add() abort
   call s:do_test("ys$tdiv\<CR>", 'foo bar baz', '<div>foo bar baz</div>')
   call s:do_test("ys$tdiv\<CR>wysetdiv\<CR>", 'foo bar baz', '<div><div>foo</div> bar baz</div>')
   call s:do_test("wysetdiv\<CR>", '  foo', '  <div>foo</div>')
+
+  call s:do_test('ys$b..', '', '((()))')
+  call s:do_test('ys$b..', 'foo', '(((foo)))')
 endfunction
 
 function! s:test_surround_change() abort
@@ -101,15 +109,45 @@ function! s:test_surround_change() abort
   call s:do_test('2fbcsbB', '(foo)bar(baz)', '(foo)bar{baz}')
   call s:do_test('$csbB', '(foo)bar(baz)', '(foo)bar{baz}')
 
-  call s:do_test("cstdiv\<CR>tp\<CR>", '<div></div>', '<p></p>')
-  call s:do_test("cstdiv\<CR>tp\<CR>", '<div>foo</div>', '<p>foo</p>')
-  call s:do_test("cstdiv\<CR>tp\<CR>", '<div>foo </div>', '<p>foo </p>')
-  call s:do_test("cstdiv\<CR>tp\<CR>", '<div> foo</div>', '<p> foo</p>')
-  call s:do_test("cstdiv\<CR>tp\<CR>", '<div> foo </div>', '<p> foo </p>')
-  call s:do_test("cstdiv\<CR>tp\<CR>", '<div>foo<div></div></div>', '<p>foo<div></div></p>')
-  call s:do_test("f<cstdiv\<CR>tp\<CR>", '<div>foo<div></div></div>', '<div>foo<p></p></div>')
-  call s:do_test("f<cstdiv\<CR>tp\<CR>", '  <div></div>  ', '  <p></p>  ')
-  call s:do_test("f<cstdiv\<CR>tp\<CR>", '  <div>foo</div>  ', '  <p>foo</p>  ')
+  call s:do_test("csttp\<CR>", '<div></div>', '<p></p>')
+  call s:do_test("csttp\<CR>", '<div>foo</div>', '<p>foo</p>')
+  call s:do_test("csttp\<CR>", '<div>foo </div>', '<p>foo </p>')
+  call s:do_test("csttp\<CR>", '<div> foo</div>', '<p> foo</p>')
+  call s:do_test("csttp\<CR>", '<div> foo </div>', '<p> foo </p>')
+  call s:do_test("csttp\<CR>", '<div>foo<b>bar</b></div>', '<p>foo<b>bar</b></p>')
+  call s:do_test("f<cstti\<CR>", '<div>foo<b>bar</b></div>', '<div>foo<i>bar</i></div>')
+  call s:do_test("f<csttp\<CR>", '  <div></div>  ', '  <p></p>  ')
+  call s:do_test("f<csttp\<CR>", '  <div>foo</div>  ', '  <p>foo</p>  ')
+
+  call s:do_test("f>csttp\<CR>", '<div></div>', '<p></p>')
+  call s:do_test("f>csttp\<CR>", '<div>foo</div>', '<p>foo</p>')
+  call s:do_test("f>csttp\<CR>", '<div>foo </div>', '<p>foo </p>')
+  call s:do_test("f>csttp\<CR>", '<div> foo</div>', '<p> foo</p>')
+  call s:do_test("f>csttp\<CR>", '<div> foo </div>', '<p> foo </p>')
+  call s:do_test("f>csttp\<CR>", '<div>foo<b>bar</b></div>', '<p>foo<b>bar</b></p>')
+  call s:do_test("2f>cstti\<CR>", '<div>foo<b>bar</b></div>', '<div>foo<i>bar</i></div>')
+  call s:do_test("f>csttp\<CR>", '  <div></div>  ', '  <p></p>  ')
+  call s:do_test("f>csttp\<CR>", '  <div>foo</div>  ', '  <p>foo</p>  ')
+
+  call s:do_test("f<csttp\<CR>", '<div></div>', '<p></p>')
+  call s:do_test("f<csttp\<CR>", '<div>foo</div>', '<p>foo</p>')
+  call s:do_test("f<csttp\<CR>", '<div>foo </div>', '<p>foo </p>')
+  call s:do_test("f<csttp\<CR>", '<div> foo</div>', '<p> foo</p>')
+  call s:do_test("f<csttp\<CR>", '<div> foo </div>', '<p> foo </p>')
+  call s:do_test("3f<csttp\<CR>", '<div>foo<b>bar</b></div>', '<p>foo<b>bar</b></p>')
+  call s:do_test("f<cstti\<CR>", '<div>foo<b>bar</b></div>', '<div>foo<i>bar</i></div>')
+  call s:do_test("f<csttp\<CR>", '  <div></div>  ', '  <p></p>  ')
+  call s:do_test("f<csttp\<CR>", '  <div>foo</div>  ', '  <p>foo</p>  ')
+
+  call s:do_test("$csttp\<CR>", '<div></div>', '<p></p>')
+  call s:do_test("$csttp\<CR>", '<div>foo</div>', '<p>foo</p>')
+  call s:do_test("$csttp\<CR>", '<div>foo </div>', '<p>foo </p>')
+  call s:do_test("$csttp\<CR>", '<div> foo</div>', '<p> foo</p>')
+  call s:do_test("$csttp\<CR>", '<div> foo </div>', '<p> foo </p>')
+  call s:do_test("$csttp\<CR>", '<div>foo<b>bar</b></div>', '<p>foo<b>bar</b></p>')
+  call s:do_test("2f>cstti\<CR>", '<div>foo<b>bar</b></div>', '<div>foo<i>bar</i></div>')
+  call s:do_test("2f>csttp\<CR>", '  <div></div>  ', '  <p></p>  ')
+  call s:do_test("2f>csttp\<CR>", '  <div>foo</div>  ', '  <p>foo</p>  ')
 endfunction
 
 function! s:test_surround_delete() abort
@@ -162,7 +200,7 @@ function! s:test_surround_delete() abort
   call s:do_test('dsb', '( \(foo\) )', '\(foo\)')
 
   call s:do_test('dsb', "(\na)", "\na")
-  call s:do_test('dsb', "(a\n)", 'a')
+  call s:do_test('dsb', "(a\n)", "a\n")
   call s:do_test('dsb', "((\na))", "(\na)")
   call s:do_test('dsb', "((a\n))", "(a\n)")
 
@@ -190,25 +228,118 @@ function! s:test_surround_delete() abort
   call s:do_test('2fbdsbB', '(foo)bar(baz)', '(foo)barbaz')
   call s:do_test('$dsbB', '(foo)bar(baz)', '(foo)barbaz')
 
-  call s:do_test("dstdiv\<CR>", '<div></div>', '')
-  call s:do_test("dstdiv\<CR>", '<div>foo</div>', 'foo')
-  call s:do_test("dstdiv\<CR>", '<div>foo </div>', 'foo')
-  call s:do_test("dstdiv\<CR>", '<div> foo</div>', 'foo')
-  call s:do_test("dstdiv\<CR>", '<div> foo </div>', 'foo')
-  call s:do_test("dstdiv\<CR>", '<div>foo<div></div></div>', 'foo<div></div>')
-  call s:do_test("f<dstdiv\<CR>", '<div>foo<div></div></div>', '<div>foo</div>')
-  call s:do_test("f<dstdiv\<CR>", '  <div></div>  ', '    ')
-  call s:do_test("f<dstdiv\<CR>", '  <div>foo</div>  ', '  foo  ')
+  call s:do_test('dst', '<div></div>', '')
+  call s:do_test('dst', '<div>foo</div>', 'foo')
+  call s:do_test('dst', '<div>foo </div>', 'foo')
+  call s:do_test('dst', '<div> foo</div>', 'foo')
+  call s:do_test('dst', '<div> foo </div>', 'foo')
+  call s:do_test('dst', '<div>foo<b>bar</b></div>', 'foo<b>bar</b>')
+  call s:do_test('f<dst', '<div>foo<b>bar</b></div>', '<div>foobar</div>')
+  call s:do_test('f<dst', '  <div></div>  ', '    ')
+  call s:do_test('f<dst', '  <div>foo</div>  ', '  foo  ')
+
+  call s:do_test('f>dst', '<div></div>', '')
+  call s:do_test('f>dst', '<div>foo</div>', 'foo')
+  call s:do_test('f>dst', '<div>foo </div>', 'foo')
+  call s:do_test('f>dst', '<div> foo</div>', 'foo')
+  call s:do_test('f>dst', '<div> foo </div>', 'foo')
+  call s:do_test('f>dst', '<div>foo<b>bar</b></div>', 'foo<b>bar</b>')
+  call s:do_test('2f>dst', '<div>foo<b>bar</b></div>', '<div>foobar</div>')
+  call s:do_test('f>dst', '  <div></div>  ', '    ')
+  call s:do_test('f>dst', '  <div>foo</div>  ', '  foo  ')
+
+  call s:do_test('f<dst', '<div></div>', '')
+  call s:do_test('f<dst', '<div>foo</div>', 'foo')
+  call s:do_test('f<dst', '<div>foo </div>', 'foo')
+  call s:do_test('f<dst', '<div> foo</div>', 'foo')
+  call s:do_test('f<dst', '<div> foo </div>', 'foo')
+  call s:do_test('3f<dst', '<div>foo<b>bar</b></div>', 'foo<b>bar</b>')
+  call s:do_test('2f<dst', '<div>foo<b>bar</b></div>', '<div>foobar</div>')
+  call s:do_test('2f<dst', '  <div></div>  ', '    ')
+  call s:do_test('2f<dst', '  <div>foo</div>  ', '  foo  ')
+
+  call s:do_test('$dst', '<div></div>', '')
+  call s:do_test('$dst', '<div>foo</div>', 'foo')
+  call s:do_test('$dst', '<div>foo </div>', 'foo')
+  call s:do_test('$dst', '<div> foo</div>', 'foo')
+  call s:do_test('$dst', '<div> foo </div>', 'foo')
+  call s:do_test('$dst', '<div>foo<b>bar</b></div>', 'foo<b>bar</b>')
+  call s:do_test('3f>dst', '<div>foo<b>bar</b></div>', '<div>foobar</div>')
+  call s:do_test('2f>dst', '  <div></div>  ', '    ')
+
+  call s:do_test("/foo\<CR>dst", '<div>foo</div>', 'foo')
+  call s:do_test("/foo\<CR>dst", '<div>foo </div>', 'foo')
+  call s:do_test("/foo\<CR>dst", '<div> foo</div>', 'foo')
+  call s:do_test("/foo\<CR>dst", '<div> foo </div>', 'foo')
+  call s:do_test("/foo\<CR>dst", '<div>foo<b>bar</b></div>', 'foo<b>bar</b>')
+  call s:do_test("/bar\<CR>dst", '<div>foo<b>bar</b></div>', '<div>foobar</div>')
+  call s:do_test("/foo\<CR>dst", '  <div>foo</div>  ', '  foo  ')
 endfunction
 
-function! s:do_test(key_sequences, source, expected_result) abort
+function! s:test_surround_textobj() abort
+  call s:do_test("d\<Plug>(surround-textobj-a:u)", '_a_', '')
+  call s:do_test("$d\<Plug>(surround-textobj-a:u)", '_a_', '')
+  call s:do_test("d\<Plug>(surround-textobj-a:u)", ' _a_ ', ' _a_ ')
+  call s:do_test("$d\<Plug>(surround-textobj-a:u)", ' _a_ ', ' _a_ ')
+  call s:do_test("fad\<Plug>(surround-textobj-a:u)", ' _a_ ', '  ')
+  call s:do_test("d\<Plug>(surround-textobj-a:u)", '_a__b_', '_b_')
+  call s:do_test("$d\<Plug>(surround-textobj-a:u)", '_a__b_', '_a_')
+  call s:do_test("fad\<Plug>(surround-textobj-a:u)", '_a__b_', '_b_')
+  call s:do_test("fbd\<Plug>(surround-textobj-a:u)", '_a__b_', '_a_')
+
+  call s:do_test("d\<Plug>(surround-textobj-i:u)", '_a_', '__')
+  call s:do_test("$d\<Plug>(surround-textobj-i:u)", '_a_', '__')
+  call s:do_test("d\<Plug>(surround-textobj-i:u)", ' _a_ ', ' _a_ ')
+  call s:do_test("$d\<Plug>(surround-textobj-i:u)", ' _a_ ', ' _a_ ')
+  call s:do_test("fad\<Plug>(surround-textobj-i:u)", ' _a_ ', ' __ ')
+  call s:do_test("d\<Plug>(surround-textobj-i:u)", '_a__b_', '___b_')
+  call s:do_test("$d\<Plug>(surround-textobj-i:u)", '_a__b_', '_a___')
+  call s:do_test("fad\<Plug>(surround-textobj-i:u)", '_a__b_', '___b_')
+  call s:do_test("fbd\<Plug>(surround-textobj-i:u)", '_a__b_', '_a___')
+
+  call s:do_test("d\<Plug>(surround-textobj-a:U)", '__a__', '')
+  call s:do_test("$d\<Plug>(surround-textobj-a:U)", '__a__', '')
+  call s:do_test("d\<Plug>(surround-textobj-a:U)", ' __a__ ', ' __a__ ')
+  call s:do_test("$d\<Plug>(surround-textobj-a:U)", ' __a__ ', ' __a__ ')
+  call s:do_test("fad\<Plug>(surround-textobj-a:U)", ' __a__ ', '  ')
+
+  call s:do_test("d\<Plug>(surround-textobj-i:U)", '__a__', '____')
+  call s:do_test("$d\<Plug>(surround-textobj-i:U)", '__a__', '____')
+  call s:do_test("d\<Plug>(surround-textobj-i:U)", ' __a__ ', ' __a__ ')
+  call s:do_test("$d\<Plug>(surround-textobj-i:U)", ' __a__ ', ' __a__ ')
+  call s:do_test("fad\<Plug>(surround-textobj-i:U)", ' __a__ ', ' ____ ')
+
+  call s:do_test("d\<Plug>(surround-textobj-a:t)", '<div>a</div>', '')
+  call s:do_test("$d\<Plug>(surround-textobj-a:t)", '<div>a</div>', '')
+  call s:do_test("d\<Plug>(surround-textobj-a:t)", ' <div>a</div> ', ' <div>a</div> ')
+  call s:do_test("$d\<Plug>(surround-textobj-a:t)", ' <div>a</div> ', ' <div>a</div> ')
+  call s:do_test("fad\<Plug>(surround-textobj-a:t)", ' <div>a</div> ', '  ')
+  call s:do_test("d\<Plug>(surround-textobj-a:t)", '<div>a<div>b</div>c</div>', '')
+  call s:do_test("$d\<Plug>(surround-textobj-a:t)", '<div>a<div>b</div>c</div>', '')
+  call s:do_test("fad\<Plug>(surround-textobj-a:t)", '<div>a<div>b</div>c</div>', '')
+  call s:do_test("fbd\<Plug>(surround-textobj-a:t)", '<div>a<div>b</div>c</div>', '<div>ac</div>')
+  call s:do_test("fcd\<Plug>(surround-textobj-a:t)", '<div>a<div>b</div>c</div>', '')
+
+  call s:do_test("d\<Plug>(surround-textobj-i:t)", '<div>a</div>', '<div></div>')
+  call s:do_test("$d\<Plug>(surround-textobj-i:t)", '<div>a</div>', '<div></div>')
+  call s:do_test("d\<Plug>(surround-textobj-i:t)", ' <div>a</div> ', ' <div>a</div> ')
+  call s:do_test("$d\<Plug>(surround-textobj-i:t)", ' <div>a</div> ', ' <div>a</div> ')
+  call s:do_test("fad\<Plug>(surround-textobj-i:t)", ' <div>a</div> ', ' <div></div> ')
+  call s:do_test("d\<Plug>(surround-textobj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
+  call s:do_test("$d\<Plug>(surround-textobj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
+  call s:do_test("fad\<Plug>(surround-textobj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
+  call s:do_test("fbd\<Plug>(surround-textobj-i:t)", '<div>a<div>b</div>c</div>', '<div>a<div></div>c</div>')
+  call s:do_test("fcd\<Plug>(surround-textobj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
+endfunction
+
+function! s:do_test(key_strokes, source, expected_result) abort
   new
   map <buffer> ys  <Plug>(surround-add)
   nmap <buffer> cs  <Plug>(surround-change)
   nmap <buffer> ds  <Plug>(surround-delete)
   silent put =a:source
   normal! ggdd0
-  0verbose execute 'normal' a:key_sequences
+  0verbose call feedkeys(a:key_strokes, 'x')
   call assert_equal(a:expected_result, join(getline(1, line('$')), "\n"))
   close!
 endfunction
