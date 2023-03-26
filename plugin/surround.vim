@@ -16,7 +16,7 @@ if !get(g:, 'surround_no_default_objects', 0)
   \   '&': { 'type': 'single', 'delimiter': '&' },
   \   "'": { 'type': 'single', 'delimiter': "'" },
   \   '(': { 'type': 'pair', 'delimiter': ['(', ')'] },
-  \   ')': { 'type': 'pair', 'delimiter': ['(', ')'] },
+  \   ')': { 'type': 'pair', 'delimiter': ['( ', ' )'] },
   \   '*': { 'type': 'single', 'delimiter': '*' },
   \   '+': { 'type': 'single', 'delimiter': '+' },
   \   ',': { 'type': 'single', 'delimiter': ',' },
@@ -27,13 +27,13 @@ if !get(g:, 'surround_no_default_objects', 0)
   \   ';': { 'type': 'single', 'delimiter': ';' },
   \   '<': { 'type': 'pair', 'delimiter': ['<', '>'] },
   \   '=': { 'type': 'single', 'delimiter': '=' },
-  \   '>': { 'type': 'pair', 'delimiter': ['<', '>'] },
+  \   '>': { 'type': 'pair', 'delimiter': ['< ', ' >'] },
   \   '?': { 'type': 'single', 'delimiter': '?' },
   \   '@': { 'type': 'single', 'delimiter': '@' },
   \   'B': { 'type': 'pair', 'delimiter': ['{', '}'] },
   \   '[': { 'type': 'pair', 'delimiter': ['[', ']'] },
   \   '\': { 'type': 'single', 'delimiter': '\' },
-  \   ']': { 'type': 'pair', 'delimiter': ['[', ']'] },
+  \   ']': { 'type': 'pair', 'delimiter': ['[ ', ' ]'] },
   \   '^': { 'type': 'single', 'delimiter': '^' },
   \   '_': { 'type': 'single', 'delimiter': '_' },
   \   '`': { 'type': 'single', 'delimiter': '`' },
@@ -43,7 +43,7 @@ if !get(g:, 'surround_no_default_objects', 0)
   \   't': { 'type': 'pair', 'delimiter': function('surround#ask_tag_name'), 'pattern': ['<\%(\a[^>]*\)\?>', '</[^>]*>'] },
   \   '{': { 'type': 'pair', 'delimiter': ['{', '}'] },
   \   '|': { 'type': 'single', 'delimiter': '|' },
-  \   '}': { 'type': 'pair', 'delimiter': ['{', '}'] },
+  \   '}': { 'type': 'pair', 'delimiter': ['{ ', ' }'] },
   \   '~': { 'type': 'single', 'delimiter': '~' },
   \ }, 'keep')
 endif
@@ -124,10 +124,11 @@ function! s:define_plugin_mappings() abort
 endfunction
 
 function! s:make_pattern(delimiter) abort
-  if strchars(a:delimiter) > 1
-    return '\V' . escape(a:delimiter, '\')
+  let delimiter = substitute(a:delimiter, '^\s\+\|\s\+$', '', '')
+  if strchars(delimiter) > 1
+    return '\V' . escape(delimiter, '\')
   else
-    return '\V\%(\[^\\]\\\)\@<!' . escape(a:delimiter, '\')
+    return '\V\%(\[^\\]\\\)\@<!' . escape(delimiter, '\')
   endif
 endfunction
 
