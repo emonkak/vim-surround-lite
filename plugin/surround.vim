@@ -8,43 +8,43 @@ endif
 
 if !get(g:, 'surround_no_default_objects', 0)
   call extend(g:surround_objects, {
-  \   '!': { 'type': 'single', 'delimiter': '!' },
-  \   '"': { 'type': 'single', 'delimiter': '"' },
-  \   '#': { 'type': 'single', 'delimiter': '#' },
-  \   '$': { 'type': 'single', 'delimiter': '$' },
-  \   '%': { 'type': 'single', 'delimiter': '%' },
-  \   '&': { 'type': 'single', 'delimiter': '&' },
-  \   "'": { 'type': 'single', 'delimiter': "'" },
-  \   '(': { 'type': 'pair', 'delimiter': ['(', ')'] },
-  \   ')': { 'type': 'pair', 'delimiter': ['( ', ' )'] },
-  \   '*': { 'type': 'single', 'delimiter': '*' },
-  \   '+': { 'type': 'single', 'delimiter': '+' },
-  \   ',': { 'type': 'single', 'delimiter': ',' },
-  \   '-': { 'type': 'single', 'delimiter': '-' },
-  \   '.': { 'type': 'single', 'delimiter': '.' },
-  \   '/': { 'type': 'single', 'delimiter': '/' },
-  \   ':': { 'type': 'single', 'delimiter': ':' },
-  \   ';': { 'type': 'single', 'delimiter': ';' },
-  \   '<': { 'type': 'pair', 'delimiter': ['<', '>'] },
-  \   '=': { 'type': 'single', 'delimiter': '=' },
-  \   '>': { 'type': 'pair', 'delimiter': ['< ', ' >'] },
-  \   '?': { 'type': 'single', 'delimiter': '?' },
-  \   '@': { 'type': 'single', 'delimiter': '@' },
-  \   'B': { 'type': 'pair', 'delimiter': ['{', '}'] },
-  \   '[': { 'type': 'pair', 'delimiter': ['[', ']'] },
-  \   '\': { 'type': 'single', 'delimiter': '\' },
-  \   ']': { 'type': 'pair', 'delimiter': ['[ ', ' ]'] },
-  \   '^': { 'type': 'single', 'delimiter': '^' },
-  \   '_': { 'type': 'single', 'delimiter': '_' },
-  \   '`': { 'type': 'single', 'delimiter': '`' },
-  \   'a': { 'type': 'pair', 'delimiter': ['<', '>'] },
-  \   'b': { 'type': 'pair', 'delimiter': ['(', ')'] },
-  \   'r': { 'type': 'pair', 'delimiter': ['[', ']'] },
-  \   't': { 'type': 'pair', 'delimiter': function('surround#ask_tag_name'), 'pattern': ['<\%(\a[^>]*\)\?>', '</[^>]*>'] },
-  \   '{': { 'type': 'pair', 'delimiter': ['{', '}'] },
-  \   '|': { 'type': 'single', 'delimiter': '|' },
-  \   '}': { 'type': 'pair', 'delimiter': ['{ ', ' }'] },
-  \   '~': { 'type': 'single', 'delimiter': '~' },
+  \   '!': { 'type': 'inline', 'delimiter': '!' },
+  \   '"': { 'type': 'inline', 'delimiter': '"' },
+  \   '#': { 'type': 'inline', 'delimiter': '#' },
+  \   '$': { 'type': 'inline', 'delimiter': '$' },
+  \   '%': { 'type': 'inline', 'delimiter': '%' },
+  \   '&': { 'type': 'inline', 'delimiter': '&' },
+  \   "'": { 'type': 'inline', 'delimiter': "'" },
+  \   '(': { 'type': 'block', 'delimiter': ['(', ')'] },
+  \   ')': { 'type': 'block', 'delimiter': ['( ', ' )'] },
+  \   '*': { 'type': 'inline', 'delimiter': '*' },
+  \   '+': { 'type': 'inline', 'delimiter': '+' },
+  \   ',': { 'type': 'inline', 'delimiter': ',' },
+  \   '-': { 'type': 'inline', 'delimiter': '-' },
+  \   '.': { 'type': 'inline', 'delimiter': '.' },
+  \   '/': { 'type': 'inline', 'delimiter': '/' },
+  \   ':': { 'type': 'inline', 'delimiter': ':' },
+  \   ';': { 'type': 'inline', 'delimiter': ';' },
+  \   '<': { 'type': 'block', 'delimiter': ['<', '>'] },
+  \   '=': { 'type': 'inline', 'delimiter': '=' },
+  \   '>': { 'type': 'block', 'delimiter': ['< ', ' >'] },
+  \   '?': { 'type': 'inline', 'delimiter': '?' },
+  \   '@': { 'type': 'inline', 'delimiter': '@' },
+  \   'B': { 'type': 'block', 'delimiter': ['{', '}'] },
+  \   '[': { 'type': 'block', 'delimiter': ['[', ']'] },
+  \   '\': { 'type': 'inline', 'delimiter': '\' },
+  \   ']': { 'type': 'block', 'delimiter': ['[ ', ' ]'] },
+  \   '^': { 'type': 'inline', 'delimiter': '^' },
+  \   '_': { 'type': 'inline', 'delimiter': '_' },
+  \   '`': { 'type': 'inline', 'delimiter': '`' },
+  \   'a': { 'type': 'block', 'delimiter': ['<', '>'] },
+  \   'b': { 'type': 'block', 'delimiter': ['(', ')'] },
+  \   'r': { 'type': 'block', 'delimiter': ['[', ']'] },
+  \   't': { 'type': 'block', 'delimiter': function('surround#ask_tag_name'), 'pattern': ['<\%(\a[^>]*\)\?>', '</[^>]*>'] },
+  \   '{': { 'type': 'block', 'delimiter': ['{', '}'] },
+  \   '|': { 'type': 'inline', 'delimiter': '|' },
+  \   '}': { 'type': 'block', 'delimiter': ['{ ', ' }'] },
+  \   '~': { 'type': 'inline', 'delimiter': '~' },
   \ }, 'keep')
 endif
 
@@ -65,16 +65,7 @@ endfunction
 
 function! s:define_text_objects(kind) abort
   for [key, object] in items(g:surround_objects)
-    if object.type ==# 'single'
-      let arguments = has_key(object, 'pattern')
-      \             ? string(object.pattern)
-      \             : type(object.delimiter) == v:t_func
-      \             ? string(object.delimiter) . '()'
-      \             : string(s:make_pattern(object.delimiter))
-      let rhs = printf(':<C-u>call surround#textobj_single_%s(%s)<CR>',
-      \                a:kind,
-      \                escape(arguments, '|'))
-    elseif object.type ==# 'pair'
+    if object.type ==# 'block'
       let arguments = has_key(object, 'pattern')
       \             ? join(map(copy(object.pattern), 'string(v:val)'), ', ')
       \             : type(object.delimiter) == v:t_func
@@ -83,17 +74,26 @@ function! s:define_text_objects(kind) abort
       \                        'string(s:make_pattern(v:val))'), ', ')
       if arguments[-2:-1] ==# '()'
         let rhs = printf(':<C-u>call call(%s, %s)<CR>',
-        \                string('surround#textobj_pair_' . a:kind),
+        \                string('surround#textobj_block_' . a:kind),
         \                escape(arguments, '|'))
       else
-        let rhs = printf(':<C-u>call surround#textobj_pair_%s(%s)<CR>',
+        let rhs = printf(':<C-u>call surround#textobj_block_%s(%s)<CR>',
         \                a:kind,
         \                escape(arguments, '|'))
       endif
+    elseif object.type ==# 'inline'
+      let arguments = has_key(object, 'pattern')
+      \             ? string(object.pattern)
+      \             : type(object.delimiter) == v:t_func
+      \             ? string(object.delimiter) . '()'
+      \             : string(s:make_pattern(object.delimiter))
+      let rhs = printf(':<C-u>call surround#textobj_inline_%s(%s)<CR>',
+      \                a:kind,
+      \                escape(arguments, '|'))
     elseif object.type ==# 'nop'
       continue
     else
-      throw printf('Unexpected type "%s". Allowed values are "single", "pair" or "nop".',
+      throw printf('Unexpected type "%s". Allowed values are "block", "inline" or "nop".',
       \            object.type)
     endif
     let lhs = printf('<Plug>(surround-textobj-%s:%s)',
@@ -110,7 +110,7 @@ function! s:define_plugin_mappings() abort
   map <Plug>(surround-remove)  <Nop>
 
   for [key, object] in items(g:surround_objects)
-    if object.type ==# 'single' || object.type ==# 'pair'
+    if object.type ==# 'block' || object.type ==# 'inline'
       let textobj = '<Plug>(surround-textobj-a:' . escape(key, '|')  . ')'
       let key_notation = get(s:KEY_NOTATION_TABLE, key, key)
       execute 'nmap <silent>'

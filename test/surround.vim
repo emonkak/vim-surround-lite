@@ -1,6 +1,6 @@
 let g:surround_objects = {
-\   'u': { 'type': 'single', 'delimiter': '_' },
-\   'U': { 'type': 'single', 'delimiter': '__' },
+\   'u': { 'type': 'inline', 'delimiter': '_' },
+\   'U': { 'type': 'inline', 'delimiter': '__' },
 \ }
 
 runtime! plugin/surround.vim

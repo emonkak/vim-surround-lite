@@ -32,9 +32,9 @@ endfunction
 
 function! surround#operator_change(motion_wiseness) abort
   if s:last_textobj_patterns isnot 0
-    let [start_pattern, end_pattern] = s:last_textobj_patterns
     let delimiters = s:ask_operator_delimiters()
     if type(delimiters) == v:t_list
+      let [start_pattern, end_pattern] = s:last_textobj_patterns
       call s:change_surround(start_pattern, end_pattern, delimiters[0], delimiters[1])
     endif
   endif
@@ -49,7 +49,7 @@ function! surround#operator_delete(motion_wiseness) abort
   let s:is_running_operator = 0
 endfunction
 
-function! surround#textobj_pair_a(start_pattern, end_pattern) abort
+function! surround#textobj_block_a(start_pattern, end_pattern) abort
   let range = s:search_surrounded_block(a:start_pattern, a:end_pattern, 1)
   if range isnot 0
     call s:select_outer(range[0], range[1])
@@ -59,7 +59,7 @@ function! surround#textobj_pair_a(start_pattern, end_pattern) abort
   endif
 endfunction
 
-function! surround#textobj_pair_i(start_pattern, end_pattern) abort
+function! surround#textobj_block_i(start_pattern, end_pattern) abort
   let range = s:search_surrounded_block(a:start_pattern, a:end_pattern, 0)
   if range isnot 0
     call s:select_inner(range[0], range[1])
@@ -69,22 +69,22 @@ function! surround#textobj_pair_i(start_pattern, end_pattern) abort
   endif
 endfunction
 
-function! surround#textobj_single_a(edge_pattern) abort
-  let range = s:search_surrounded_text(a:edge_pattern, 1)
+function! surround#textobj_inline_a(pattern) abort
+  let range = s:search_surrounded_text(a:pattern, 1)
   if range isnot 0
     call s:select_outer(range[0], range[1])
     if s:is_running_operator
-      let s:last_textobj_patterns = [a:edge_pattern, a:edge_pattern]
+      let s:last_textobj_patterns = [a:pattern, a:pattern]
     endif
   endif
 endfunction
 
-function! surround#textobj_single_i(edge_pattern) abort
-  let range = s:search_surrounded_text(a:edge_pattern, 0)
+function! surround#textobj_inline_i(pattern) abort
+  let range = s:search_surrounded_text(a:pattern, 0)
   if range isnot 0
     call s:select_inner(range[0], range[1])
     if s:is_running_operator
-      let s:last_textobj_patterns = [a:edge_pattern, a:edge_pattern]
+      let s:last_textobj_patterns = [a:pattern, a:pattern]
     endif
   endif
 endfunction
@@ -290,13 +290,13 @@ function! s:search_surrounded_block(start_pattern, end_pattern, is_outer) abort
   return [start, end]
 endfunction
 
-function! s:search_surrounded_text(edge_pattern, is_outer) abort
+function! s:search_surrounded_text(pattern, is_outer) abort
   let cursor = getpos('.')[1:]
 
   " Move the cursor to the the first column of the current line.
   normal! 0
 
-  let start_edges = s:search_edges(a:edge_pattern, 'Wc', cursor[0])
+  let start_edges = s:search_edges(a:pattern, 'Wc', cursor[0])
   if start_edges is 0
     return 0
   endif
@@ -305,7 +305,7 @@ function! s:search_surrounded_text(edge_pattern, is_outer) abort
   let is_opened = 1
 
   while 1
-    let end_edges = s:search_edges(a:edge_pattern, 'W', cursor[0])
+    let end_edges = s:search_edges(a:pattern, 'W', cursor[0])
     if end_edges is 0
       call cursor(cursor)
       return 0
@@ -357,17 +357,17 @@ function! s:setup_operator(operator_func) abort
 endfunction
 
 function! s:surround_object_to_delimiters(object) abort
-  if a:object.type ==# 'single'
-    let delimiter = type(a:object.delimiter) == v:t_func
-    \             ? a:object.delimiter()
-    \             : a:object.delimiter
-    return [delimiter, delimiter]
-  endif
-  if a:object.type ==# 'pair'
+  if a:object.type ==# 'block'
     let delimiter = type(a:object.delimiter) == v:t_func
     \             ? a:object.delimiter()
     \             : a:object.delimiter
     return delimiter
+  elseif a:object.type ==# 'inline'
+    let delimiter = type(a:object.delimiter) == v:t_func
+    \             ? a:object.delimiter()
+    \             : a:object.delimiter
+    return [delimiter, delimiter]
+  else
+    return ['', '']
   endif
-  return ['', '']
 endfunction
