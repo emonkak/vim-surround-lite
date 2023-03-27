@@ -4,25 +4,25 @@ let s:last_operator_delimiters = 0
 
 let s:last_textobj_patterns = 0
 
-function! surround#ask_tag_name() abort
+function! surround_obj#ask_tag_name() abort
   let tag_name = input('Tag Name: ')
-  let start = '<' . tag_name . '>'
-  let end = '</' . tag_name . '>'
-  return [start, end]
+  let start_delimiter = '<' . tag_name . '>'
+  let end_delimiter = '</' . tag_name . '>'
+  return [start_delimiter, end_delimiter]
 endfunction
 
-function! surround#execute_operator_n(operator_func) abort
+function! surround_obj#execute_operator_n(operator_func) abort
   call s:setup_operator(a:operator_func)
   let l:count = v:count ? v:count : ''
   return l:count . 'g@'
 endfunction
 
-function! surround#execute_operator_v(operator_func) abort
+function! surround_obj#execute_operator_v(operator_func) abort
   call s:setup_operator(a:operator_func)
   return 'g@'
 endfunction
 
-function! surround#operator_add(motion_wiseness) abort
+function! surround_obj#operator_add(motion_wiseness) abort
   let delimiters = s:ask_operator_delimiters()
   if type(delimiters) == v:t_list
     call s:add_surround(delimiters[0], delimiters[1])
@@ -30,18 +30,22 @@ function! surround#operator_add(motion_wiseness) abort
   let s:is_running_operator = 0
 endfunction
 
-function! surround#operator_change(motion_wiseness) abort
+function! surround_obj#operator_change(motion_wiseness) abort
   if s:last_textobj_patterns isnot 0
     let delimiters = s:ask_operator_delimiters()
     if type(delimiters) == v:t_list
       let [start_pattern, end_pattern] = s:last_textobj_patterns
-      call s:change_surround(start_pattern, end_pattern, delimiters[0], delimiters[1])
+      let [start_delimiter, end_delimiter] = delimiters
+      call s:change_surround(start_pattern,
+      \                      end_pattern,
+      \                      start_delimiter,
+      \                      end_delimiter)
     endif
   endif
   let s:is_running_operator = 0
 endfunction
 
-function! surround#operator_delete(motion_wiseness) abort
+function! surround_obj#operator_delete(motion_wiseness) abort
   if s:last_textobj_patterns isnot 0
     let [start_pattern, end_pattern] = s:last_textobj_patterns
     call s:delete_surround(start_pattern, end_pattern)
@@ -49,7 +53,7 @@ function! surround#operator_delete(motion_wiseness) abort
   let s:is_running_operator = 0
 endfunction
 
-function! surround#textobj_block_a(start_pattern, end_pattern) abort
+function! surround_obj#textobj_block_a(start_pattern, end_pattern) abort
   let range = s:search_surrounded_block(a:start_pattern, a:end_pattern, 1)
   if range isnot 0
     call s:select_outer(range[0], range[1])
@@ -59,7 +63,7 @@ function! surround#textobj_block_a(start_pattern, end_pattern) abort
   endif
 endfunction
 
-function! surround#textobj_block_i(start_pattern, end_pattern) abort
+function! surround_obj#textobj_block_i(start_pattern, end_pattern) abort
   let range = s:search_surrounded_block(a:start_pattern, a:end_pattern, 0)
   if range isnot 0
     call s:select_inner(range[0], range[1])
@@ -69,7 +73,7 @@ function! surround#textobj_block_i(start_pattern, end_pattern) abort
   endif
 endfunction
 
-function! surround#textobj_inline_a(pattern) abort
+function! surround_obj#textobj_inline_a(pattern) abort
   let range = s:search_surrounded_text(a:pattern, 1)
   if range isnot 0
     call s:select_outer(range[0], range[1])
@@ -79,7 +83,7 @@ function! surround#textobj_inline_a(pattern) abort
   endif
 endfunction
 
-function! surround#textobj_inline_i(pattern) abort
+function! surround_obj#textobj_inline_i(pattern) abort
   let range = s:search_surrounded_text(a:pattern, 0)
   if range isnot 0
     call s:select_inner(range[0], range[1])
@@ -105,8 +109,8 @@ endfunction
 function! s:ask_operator_delimiters() abort
   if s:last_operator_delimiters is 0
     let char = nr2char(getchar())
-    if has_key(g:surround_objects, char)
-      let object = g:surround_objects[char]
+    if has_key(g:surround_obj_objects, char)
+      let object = g:surround_obj_objects[char]
       let s:last_operator_delimiters = s:surround_object_to_delimiters(object)
     else
       let s:last_operator_delimiters = -1
@@ -358,10 +362,10 @@ endfunction
 
 function! s:surround_object_to_delimiters(object) abort
   if a:object.type ==# 'block'
-    let delimiter = type(a:object.delimiter) == v:t_func
-    \             ? a:object.delimiter()
-    \             : a:object.delimiter
-    return delimiter
+    let delimiters = type(a:object.delimiter) == v:t_func
+    \              ? a:object.delimiter()
+    \              : a:object.delimiter
+    return delimiters
   elseif a:object.type ==# 'inline'
     let delimiter = type(a:object.delimiter) == v:t_func
     \             ? a:object.delimiter()

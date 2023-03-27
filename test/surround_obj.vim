@@ -1,9 +1,9 @@
-let g:surround_objects = {
+let g:surround_obj_objects = {
 \   'u': { 'type': 'inline', 'delimiter': '_' },
 \   'U': { 'type': 'inline', 'delimiter': '__' },
 \ }
 
-runtime! plugin/surround.vim
+runtime! plugin/surround_obj.vim
 
 function! s:test_surround_add() abort
   call s:do_test('yse"', 'foo bar baz', '"foo" bar baz')
@@ -302,66 +302,66 @@ function! s:test_surround_delete() abort
 endfunction
 
 function! s:test_surround_textobj() abort
-  call s:do_test("d\<Plug>(surround-textobj-a:u)", '_a_', '')
-  call s:do_test("$d\<Plug>(surround-textobj-a:u)", '_a_', '')
-  call s:do_test("d\<Plug>(surround-textobj-a:u)", ' _a_ ', ' _a_ ')
-  call s:do_test("$d\<Plug>(surround-textobj-a:u)", ' _a_ ', ' _a_ ')
-  call s:do_test("fad\<Plug>(surround-textobj-a:u)", ' _a_ ', '  ')
-  call s:do_test("d\<Plug>(surround-textobj-a:u)", '_a__b_', '_b_')
-  call s:do_test("$d\<Plug>(surround-textobj-a:u)", '_a__b_', '_a_')
-  call s:do_test("fad\<Plug>(surround-textobj-a:u)", '_a__b_', '_b_')
-  call s:do_test("fbd\<Plug>(surround-textobj-a:u)", '_a__b_', '_a_')
+  call s:do_test("d\<Plug>(surround-obj-a:u)", '_a_', '')
+  call s:do_test("$d\<Plug>(surround-obj-a:u)", '_a_', '')
+  call s:do_test("d\<Plug>(surround-obj-a:u)", ' _a_ ', ' _a_ ')
+  call s:do_test("$d\<Plug>(surround-obj-a:u)", ' _a_ ', ' _a_ ')
+  call s:do_test("fad\<Plug>(surround-obj-a:u)", ' _a_ ', '  ')
+  call s:do_test("d\<Plug>(surround-obj-a:u)", '_a__b_', '_b_')
+  call s:do_test("$d\<Plug>(surround-obj-a:u)", '_a__b_', '_a_')
+  call s:do_test("fad\<Plug>(surround-obj-a:u)", '_a__b_', '_b_')
+  call s:do_test("fbd\<Plug>(surround-obj-a:u)", '_a__b_', '_a_')
 
-  call s:do_test("d\<Plug>(surround-textobj-i:u)", '_a_', '__')
-  call s:do_test("$d\<Plug>(surround-textobj-i:u)", '_a_', '__')
-  call s:do_test("d\<Plug>(surround-textobj-i:u)", ' _a_ ', ' _a_ ')
-  call s:do_test("$d\<Plug>(surround-textobj-i:u)", ' _a_ ', ' _a_ ')
-  call s:do_test("fad\<Plug>(surround-textobj-i:u)", ' _a_ ', ' __ ')
-  call s:do_test("d\<Plug>(surround-textobj-i:u)", '_a__b_', '___b_')
-  call s:do_test("$d\<Plug>(surround-textobj-i:u)", '_a__b_', '_a___')
-  call s:do_test("fad\<Plug>(surround-textobj-i:u)", '_a__b_', '___b_')
-  call s:do_test("fbd\<Plug>(surround-textobj-i:u)", '_a__b_', '_a___')
+  call s:do_test("d\<Plug>(surround-obj-i:u)", '_a_', '__')
+  call s:do_test("$d\<Plug>(surround-obj-i:u)", '_a_', '__')
+  call s:do_test("d\<Plug>(surround-obj-i:u)", ' _a_ ', ' _a_ ')
+  call s:do_test("$d\<Plug>(surround-obj-i:u)", ' _a_ ', ' _a_ ')
+  call s:do_test("fad\<Plug>(surround-obj-i:u)", ' _a_ ', ' __ ')
+  call s:do_test("d\<Plug>(surround-obj-i:u)", '_a__b_', '___b_')
+  call s:do_test("$d\<Plug>(surround-obj-i:u)", '_a__b_', '_a___')
+  call s:do_test("fad\<Plug>(surround-obj-i:u)", '_a__b_', '___b_')
+  call s:do_test("fbd\<Plug>(surround-obj-i:u)", '_a__b_', '_a___')
 
-  call s:do_test("d\<Plug>(surround-textobj-a:U)", '__a__', '')
-  call s:do_test("$d\<Plug>(surround-textobj-a:U)", '__a__', '')
-  call s:do_test("d\<Plug>(surround-textobj-a:U)", ' __a__ ', ' __a__ ')
-  call s:do_test("$d\<Plug>(surround-textobj-a:U)", ' __a__ ', ' __a__ ')
-  call s:do_test("fad\<Plug>(surround-textobj-a:U)", ' __a__ ', '  ')
+  call s:do_test("d\<Plug>(surround-obj-a:U)", '__a__', '')
+  call s:do_test("$d\<Plug>(surround-obj-a:U)", '__a__', '')
+  call s:do_test("d\<Plug>(surround-obj-a:U)", ' __a__ ', ' __a__ ')
+  call s:do_test("$d\<Plug>(surround-obj-a:U)", ' __a__ ', ' __a__ ')
+  call s:do_test("fad\<Plug>(surround-obj-a:U)", ' __a__ ', '  ')
 
-  call s:do_test("d\<Plug>(surround-textobj-i:U)", '__a__', '____')
-  call s:do_test("$d\<Plug>(surround-textobj-i:U)", '__a__', '____')
-  call s:do_test("d\<Plug>(surround-textobj-i:U)", ' __a__ ', ' __a__ ')
-  call s:do_test("$d\<Plug>(surround-textobj-i:U)", ' __a__ ', ' __a__ ')
-  call s:do_test("fad\<Plug>(surround-textobj-i:U)", ' __a__ ', ' ____ ')
+  call s:do_test("d\<Plug>(surround-obj-i:U)", '__a__', '____')
+  call s:do_test("$d\<Plug>(surround-obj-i:U)", '__a__', '____')
+  call s:do_test("d\<Plug>(surround-obj-i:U)", ' __a__ ', ' __a__ ')
+  call s:do_test("$d\<Plug>(surround-obj-i:U)", ' __a__ ', ' __a__ ')
+  call s:do_test("fad\<Plug>(surround-obj-i:U)", ' __a__ ', ' ____ ')
 
-  call s:do_test("d\<Plug>(surround-textobj-a:t)", '<div>a</div>', '')
-  call s:do_test("$d\<Plug>(surround-textobj-a:t)", '<div>a</div>', '')
-  call s:do_test("d\<Plug>(surround-textobj-a:t)", ' <div>a</div> ', ' <div>a</div> ')
-  call s:do_test("$d\<Plug>(surround-textobj-a:t)", ' <div>a</div> ', ' <div>a</div> ')
-  call s:do_test("fad\<Plug>(surround-textobj-a:t)", ' <div>a</div> ', '  ')
-  call s:do_test("d\<Plug>(surround-textobj-a:t)", '<div>a<div>b</div>c</div>', '')
-  call s:do_test("$d\<Plug>(surround-textobj-a:t)", '<div>a<div>b</div>c</div>', '')
-  call s:do_test("fad\<Plug>(surround-textobj-a:t)", '<div>a<div>b</div>c</div>', '')
-  call s:do_test("fbd\<Plug>(surround-textobj-a:t)", '<div>a<div>b</div>c</div>', '<div>ac</div>')
-  call s:do_test("fcd\<Plug>(surround-textobj-a:t)", '<div>a<div>b</div>c</div>', '')
+  call s:do_test("d\<Plug>(surround-obj-a:t)", '<div>a</div>', '')
+  call s:do_test("$d\<Plug>(surround-obj-a:t)", '<div>a</div>', '')
+  call s:do_test("d\<Plug>(surround-obj-a:t)", ' <div>a</div> ', ' <div>a</div> ')
+  call s:do_test("$d\<Plug>(surround-obj-a:t)", ' <div>a</div> ', ' <div>a</div> ')
+  call s:do_test("fad\<Plug>(surround-obj-a:t)", ' <div>a</div> ', '  ')
+  call s:do_test("d\<Plug>(surround-obj-a:t)", '<div>a<div>b</div>c</div>', '')
+  call s:do_test("$d\<Plug>(surround-obj-a:t)", '<div>a<div>b</div>c</div>', '')
+  call s:do_test("fad\<Plug>(surround-obj-a:t)", '<div>a<div>b</div>c</div>', '')
+  call s:do_test("fbd\<Plug>(surround-obj-a:t)", '<div>a<div>b</div>c</div>', '<div>ac</div>')
+  call s:do_test("fcd\<Plug>(surround-obj-a:t)", '<div>a<div>b</div>c</div>', '')
 
-  call s:do_test("d\<Plug>(surround-textobj-i:t)", '<div>a</div>', '<div></div>')
-  call s:do_test("$d\<Plug>(surround-textobj-i:t)", '<div>a</div>', '<div></div>')
-  call s:do_test("d\<Plug>(surround-textobj-i:t)", ' <div>a</div> ', ' <div>a</div> ')
-  call s:do_test("$d\<Plug>(surround-textobj-i:t)", ' <div>a</div> ', ' <div>a</div> ')
-  call s:do_test("fad\<Plug>(surround-textobj-i:t)", ' <div>a</div> ', ' <div></div> ')
-  call s:do_test("d\<Plug>(surround-textobj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
-  call s:do_test("$d\<Plug>(surround-textobj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
-  call s:do_test("fad\<Plug>(surround-textobj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
-  call s:do_test("fbd\<Plug>(surround-textobj-i:t)", '<div>a<div>b</div>c</div>', '<div>a<div></div>c</div>')
-  call s:do_test("fcd\<Plug>(surround-textobj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
+  call s:do_test("d\<Plug>(surround-obj-i:t)", '<div>a</div>', '<div></div>')
+  call s:do_test("$d\<Plug>(surround-obj-i:t)", '<div>a</div>', '<div></div>')
+  call s:do_test("d\<Plug>(surround-obj-i:t)", ' <div>a</div> ', ' <div>a</div> ')
+  call s:do_test("$d\<Plug>(surround-obj-i:t)", ' <div>a</div> ', ' <div>a</div> ')
+  call s:do_test("fad\<Plug>(surround-obj-i:t)", ' <div>a</div> ', ' <div></div> ')
+  call s:do_test("d\<Plug>(surround-obj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
+  call s:do_test("$d\<Plug>(surround-obj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
+  call s:do_test("fad\<Plug>(surround-obj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
+  call s:do_test("fbd\<Plug>(surround-obj-i:t)", '<div>a<div>b</div>c</div>', '<div>a<div></div>c</div>')
+  call s:do_test("fcd\<Plug>(surround-obj-i:t)", '<div>a<div>b</div>c</div>', '<div></div>')
 endfunction
 
 function! s:do_test(key_strokes, source, expected_result) abort
   new
-  map <buffer> ys  <Plug>(surround-add)
-  nmap <buffer> cs  <Plug>(surround-change)
-  nmap <buffer> ds  <Plug>(surround-delete)
+  map <buffer> ys  <Plug>(surround-obj-add)
+  nmap <buffer> cs  <Plug>(surround-obj-change)
+  nmap <buffer> ds  <Plug>(surround-obj-delete)
   silent put =a:source
   normal! ggdd0
   0verbose call feedkeys(a:key_strokes, 'x')
