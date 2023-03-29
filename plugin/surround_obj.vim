@@ -2,8 +2,10 @@ if exists('g:loaded_surround_obj')
   finish
 endif
 
-if !exists('g:surround_obj_objects')
-  let g:surround_obj_objects = {}
+let g:surround_obj_objects = {}
+
+if exists('g:surround_obj_custom_objects')
+  call extend(g:surround_obj_objects, g:surround_obj_custom_objects)
 endif
 
 if !get(g:, 'surround_obj_no_default_objects', 0)

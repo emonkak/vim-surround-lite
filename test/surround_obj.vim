@@ -1,4 +1,4 @@
-let g:surround_obj_objects = {
+let g:surround_obj_custom_objects = {
 \   'u': { 'type': 'inline', 'delimiter': '_' },
 \   'U': { 'type': 'inline', 'delimiter': '__' },
 \ }
