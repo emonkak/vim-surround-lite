@@ -167,7 +167,7 @@ function! s:delete_surround(start_pattern, end_pattern) abort
 
   if start_tail[0] > end_head[0]
   \  || (start_tail[0] == end_head[0] && start_tail[1] >= end_head[1])
-    " The head of tail position overlaps the tail of head position.
+    " The head of the tail position overlaps the tail of the head position.
     call s:select_outer(start_head, end_head)
     execute 'normal!' "\<BS>"
   else
