@@ -59,9 +59,9 @@ let s:KEY_NOTATION_TABLE = {
 
 function! s:define_operator(lhs, operator_func) abort
   execute 'nnoremap' '<expr>' a:lhs
-  \       'surround_obj#execute_operator_n(' . string(a:operator_func) . ')'
+  \       'surround_obj#setup_operator_n(' . string(a:operator_func) . ')'
   execute 'vnoremap' '<expr>' a:lhs
-  \       'surround_obj#execute_operator_v(' . string(a:operator_func) . ')'
+  \       'surround_obj#setup_operator_v(' . string(a:operator_func) . ')'
   execute 'onoremap' a:lhs 'g@'
 endfunction
 

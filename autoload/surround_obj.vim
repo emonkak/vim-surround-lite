@@ -11,17 +11,6 @@ function! surround_obj#ask_tag_name() abort
   return [start_delimiter, end_delimiter]
 endfunction
 
-function! surround_obj#execute_operator_n(operator_func) abort
-  call s:setup_operator(a:operator_func)
-  let l:count = v:count ? v:count : ''
-  return l:count . 'g@'
-endfunction
-
-function! surround_obj#execute_operator_v(operator_func) abort
-  call s:setup_operator(a:operator_func)
-  return 'g@'
-endfunction
-
 function! surround_obj#operator_add(motion_wiseness) abort
   let delimiters = s:ask_operator_delimiters()
   if type(delimiters) == v:t_list
@@ -51,6 +40,17 @@ function! surround_obj#operator_delete(motion_wiseness) abort
     call s:delete_surround(start_pattern, end_pattern)
   endif
   let s:is_running_operator = 0
+endfunction
+
+function! surround_obj#setup_operator_n(operator_func) abort
+  call s:setup_operator(a:operator_func)
+  let l:count = v:count ? v:count : ''
+  return l:count . 'g@'
+endfunction
+
+function! surround_obj#setup_operator_v(operator_func) abort
+  call s:setup_operator(a:operator_func)
+  return 'g@'
 endfunction
 
 function! surround_obj#textobj_block_a(start_pattern, end_pattern) abort
