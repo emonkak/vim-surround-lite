@@ -37,6 +37,8 @@ endfunction
 function! surround_obj#operator_delete(motion_wiseness) abort
   if s:last_textobj_patterns isnot 0
     let [start_pattern, end_pattern] = s:last_textobj_patterns
+    let start_pattern = start_pattern . '\m\s*'
+    let end_pattern = '\s*' . end_pattern
     call s:delete_surround(start_pattern, end_pattern)
   endif
   let s:is_running_operator = 0
@@ -146,13 +148,10 @@ function! s:create_undo_block() abort
 endfunction
 
 function! s:delete_surround(start_pattern, end_pattern) abort
-  let start_pattern = a:start_pattern . '\m\s*'
-  let end_pattern = '\s*' . a:end_pattern
-
   let start_head = getpos("'[")[1:]
   let end_tail = getpos("']")[1:]
 
-  let end_head = s:search_backward(end_pattern, end_tail)
+  let end_head = s:search_backward(a:end_pattern, end_tail)
   if end_head is 0
     return
   endif
@@ -160,7 +159,7 @@ function! s:delete_surround(start_pattern, end_pattern) abort
   call s:select_outer(end_head, end_tail)
   normal! "_d
 
-  let start_tail = s:search_forward(start_pattern, start_head)
+  let start_tail = s:search_forward(a:start_pattern, start_head)
   if start_tail is 0
     return
   endif

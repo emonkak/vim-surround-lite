@@ -50,12 +50,41 @@ if !get(g:, 'surround_obj_no_default_objects', 0)
   \ }, 'keep')
 endif
 
-let s:KEY_NOTATION_TABLE = {
+let s:KEY_NOTATIONS = {
 \   '|': '<Bar>',
 \   '\': '<Bslash>',
 \   '<': '<Lt>',
 \   ' ': '<Space>',
 \ }
+
+function! s:define_plugin_mappings() abort
+  call s:define_operator('<SID>(operator-add)',
+  \                      'surround_obj#operator_add')
+  call s:define_operator('<SID>(operator-change)',
+  \                      'surround_obj#operator_change')
+  call s:define_operator('<SID>(operator-delete)',
+  \                      'surround_obj#operator_delete')
+
+  map <silent> <Plug>(surround-obj-add)  <SID>(operator-add)
+  map <Plug>(surround-obj-change)  <Nop>
+  map <Plug>(surround-obj-remove)  <Nop>
+
+  for [key, object] in items(g:surround_obj_objects)
+    let textobj_a = s:define_text_object(key, object, 'a')
+
+    call s:define_text_object(key, object, 'i')
+
+    if textobj_a isnot 0
+      let key_notation = get(s:KEY_NOTATIONS, key, key)
+      execute 'nmap <silent>'
+      \       ('<Plug>(surround-obj-change)' . key_notation)
+      \       ('<SID>(operator-change)' . textobj_a)
+      execute 'nmap <silent>'
+      \       ('<Plug>(surround-obj-delete)' . key_notation)
+      \       ('<SID>(operator-delete)' . textobj_a)
+    endif
+  endfor
+endfunction
 
 function! s:define_operator(lhs, operator_func) abort
   execute 'nnoremap' '<expr>' a:lhs
@@ -65,64 +94,42 @@ function! s:define_operator(lhs, operator_func) abort
   execute 'onoremap' a:lhs 'g@'
 endfunction
 
-function! s:define_text_objects(kind) abort
-  for [key, object] in items(g:surround_obj_objects)
-    if object.type ==# 'block'
-      let arguments = has_key(object, 'pattern')
-      \             ? join(map(copy(object.pattern), 'string(v:val)'), ', ')
-      \             : type(object.delimiter) == v:t_func
-      \             ? string(object.delimiter) . '()'
-      \             : join(map(copy(object.delimiter),
+function! s:define_text_object(key, object, kind) abort
+  if a:object.type ==# 'block'
+    if has_key(a:object, 'pattern')
+      let arguments = join(map(copy(a:object.pattern), 'string(v:val)'), ', ')
+    elseif type(a:object.delimiter) == v:t_list
+      let arguments = join(map(copy(a:object.delimiter),
       \                        'string(s:make_pattern(v:val))'), ', ')
-      if arguments[-2:-1] ==# '()'
-        let rhs = printf(':<C-u>call call(%s, %s)<CR>',
-        \                string('surround_obj#textobj_block_' . a:kind),
-        \                escape(arguments, '|'))
-      else
-        let rhs = printf(':<C-u>call surround_obj#textobj_block_%s(%s)<CR>',
-        \                a:kind,
-        \                escape(arguments, '|'))
-      endif
-    elseif object.type ==# 'inline'
-      let arguments = has_key(object, 'pattern')
-      \             ? string(object.pattern)
-      \             : type(object.delimiter) == v:t_func
-      \             ? string(object.delimiter) . '()'
-      \             : string(s:make_pattern(object.delimiter))
-      let rhs = printf(':<C-u>call surround_obj#textobj_inline_%s(%s)<CR>',
-      \                a:kind,
-      \                escape(arguments, '|'))
-    elseif object.type ==# 'nop'
-      continue
     else
-      throw printf('Unexpected type "%s". Allowed values are "block", "inline" or "nop".',
-      \            object.type)
+      return 0
     endif
-    let lhs = printf('<Plug>(surround-obj-%s:%s)',
+    let rhs = printf(':<C-u>call surround_obj#textobj_block_%s(%s)<CR>',
     \                a:kind,
-    \                escape(key, '|'))
-    execute 'vnoremap <silent>' lhs rhs
-    execute 'onoremap <silent>' lhs rhs
-  endfor
-endfunction
-
-function! s:define_plugin_mappings() abort
-  map <silent> <Plug>(surround-obj-add)  <SID>(operator-add)
-  map <Plug>(surround-obj-change)  <Nop>
-  map <Plug>(surround-obj-remove)  <Nop>
-
-  for [key, object] in items(g:surround_obj_objects)
-    if object.type ==# 'block' || object.type ==# 'inline'
-      let textobj = '<Plug>(surround-obj-a:' . escape(key, '|')  . ')'
-      let key_notation = get(s:KEY_NOTATION_TABLE, key, key)
-      execute 'nmap <silent>'
-      \       ('<Plug>(surround-obj-change)' . key_notation)
-      \       ('<SID>(operator-change)' . textobj)
-      execute 'nmap <silent>'
-      \       ('<Plug>(surround-obj-delete)' . key_notation)
-      \       ('<SID>(operator-delete)' . textobj)
+    \                escape(arguments, '|'))
+  elseif a:object.type ==# 'inline'
+    if has_key(a:object, 'pattern')
+      let arguments = string(a:object.pattern)
+    elseif type(a:object.delimiter) == v:t_string
+      let arguments = string(s:make_pattern(a:object.delimiter))
+    else
+      return 0
     endif
-  endfor
+    let rhs = printf(':<C-u>call surround_obj#textobj_inline_%s(%s)<CR>',
+    \                a:kind,
+    \                escape(arguments, '|'))
+  elseif a:object.type ==# 'nop'
+    return 0
+  else
+    throw printf('Unexpected type "%s". Allowed values are "block", "inline" or "nop".',
+    \            a:object.type)
+  endif
+  let lhs = printf('<Plug>(surround-obj-%s:%s)',
+  \                a:kind,
+  \                escape(a:key, '|'))
+  execute 'vnoremap <silent>' lhs rhs
+  execute 'onoremap <silent>' lhs rhs
+  return lhs
 endfunction
 
 function! s:make_pattern(delimiter) abort
@@ -133,16 +140,6 @@ function! s:make_pattern(delimiter) abort
     return '\V\%(\[^\\]\\\)\@<!' . escape(delimiter, '\')
   endif
 endfunction
-
-call s:define_operator('<SID>(operator-add)',
-\                      'surround_obj#operator_add')
-call s:define_operator('<SID>(operator-change)',
-\                      'surround_obj#operator_change')
-call s:define_operator('<SID>(operator-delete)',
-\                      'surround_obj#operator_delete')
-
-call s:define_text_objects('a')
-call s:define_text_objects('i')
 
 call s:define_plugin_mappings()
 
