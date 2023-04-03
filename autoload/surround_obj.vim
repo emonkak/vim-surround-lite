@@ -111,9 +111,9 @@ endfunction
 function! s:ask_operator_delimiters() abort
   if s:last_operator_delimiters is 0
     let char = nr2char(getchar())
-    if has_key(g:surround_obj_objects, char)
-      let object = g:surround_obj_objects[char]
-      let s:last_operator_delimiters = s:surround_object_to_delimiters(object)
+    if has_key(g:surround_obj_loaded_objects, char)
+      let object = g:surround_obj_loaded_objects[char]
+      let s:last_operator_delimiters = s:get_delimiters(object)
     else
       let s:last_operator_delimiters = -1
     endif
@@ -173,6 +173,24 @@ function! s:delete_surround(start_pattern, end_pattern) abort
     call s:select_outer(start_head, start_tail)
   endif
   normal! "_d
+endfunction
+
+function! s:get_delimiters(object) abort
+  if a:object.type ==# 'block'
+    let delimiters = type(a:object.delimiter) == v:t_func
+    \              ? a:object.delimiter()
+    \              : a:object.delimiter
+    return delimiters
+  elseif a:object.type ==# 'inline'
+    let delimiter = type(a:object.delimiter) == v:t_func
+    \             ? a:object.delimiter()
+    \             : a:object.delimiter
+    return [delimiter, delimiter]
+  elseif a:object.type ==# 'alias'
+    return s:get_delimiters(g:surround_obj_loaded_objects[a:object.key])
+  else
+    return ['', '']
+  endif
 endfunction
 
 function! s:put_text_at_cursor(put_command, text) abort
@@ -357,20 +375,4 @@ function! s:setup_operator(operator_func) abort
   let s:is_running_operator = 1
   let s:last_operator_delimiters = 0
   let s:last_textobj_patterns = 0
-endfunction
-
-function! s:surround_object_to_delimiters(object) abort
-  if a:object.type ==# 'block'
-    let delimiters = type(a:object.delimiter) == v:t_func
-    \              ? a:object.delimiter()
-    \              : a:object.delimiter
-    return delimiters
-  elseif a:object.type ==# 'inline'
-    let delimiter = type(a:object.delimiter) == v:t_func
-    \             ? a:object.delimiter()
-    \             : a:object.delimiter
-    return [delimiter, delimiter]
-  else
-    return ['', '']
-  endif
 endfunction

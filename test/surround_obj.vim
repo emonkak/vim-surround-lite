@@ -1,6 +1,6 @@
 let g:surround_obj_custom_objects = {
-\   'u': { 'type': 'inline', 'delimiter': '_' },
-\   'U': { 'type': 'inline', 'delimiter': '__' },
+\   'u': { 'type': 'inline', 'delimiter': '_', 'pattern': '\V\%(\[^\\]\\\)\@<!_' },
+\   'U': { 'type': 'inline', 'delimiter': '__', 'pattern': '\V\%(\[^\\]\\\)\@<!__' },
 \ }
 
 runtime! plugin/surround_obj.vim
