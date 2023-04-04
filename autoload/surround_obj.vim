@@ -48,6 +48,11 @@ function! surround_obj#define_built_in_objects(...) abort
   \   ['b', '(', ')'],
   \ ]
 
+  let ALIAS_OBJECTS = [
+  \   ['B', '{'],
+  \   ['b', '('],
+  \ ]
+
   let allow_list = get(a:000, 0)
 
   for key in INLINE_OBJECTS
@@ -72,6 +77,23 @@ function! surround_obj#define_built_in_objects(...) abort
       \ })
     endif
   endfor
+
+  for [key, alias] in ALIAS_OBJECTS
+    if allow_list is 0 || index(allow_list, key) >= 0
+      call surround_obj#define_object(key, {
+      \   'type': 'alias',
+      \   'key': alias,
+      \ })
+    endif
+  endfor
+
+  if allow_list is 0 || index(allow_list, 'f') >= 0
+    call surround_obj#define_object('f', {
+    \   'type': 'block',
+    \   'delimiter': function('s:ask_function_name'),
+    \   'pattern': ['\h\w*\s*(', ')'],
+    \ })
+  endif
 
   if allow_list is 0 || index(allow_list, 't') >= 0
     call surround_obj#define_object('t', {
@@ -101,7 +123,7 @@ function! surround_obj#make_pattern(delimiter) abort
   let suffix = ''
 
   if strchars(delimiter) == 1
-    " Skip an escaped character.
+    " Skip an character escaped by backslash.
     let prefix .= '\%(\[^\\]\\\)\@<!'
   endif
 
@@ -137,6 +159,10 @@ function! surround_obj#_find_object(key) abort
     endif
   endwhile
   return found_object
+endfunction
+
+function! s:ask_function_name() abort
+  return [input('Function Name: ') . '(', ')']
 endfunction
 
 function! s:ask_tag_name() abort
@@ -196,8 +222,8 @@ function! s:define_textobj_alias(kind, key, alias, map_options) abort
   let rhs = printf('<Plug>(surround-obj-%s:%s)',
   \                a:kind,
   \                escape(a:alias, '|'))
-  execute 'vnoremap <silent>' a:map_options lhs rhs
-  execute 'onoremap <silent>' a:map_options lhs rhs
+  execute 'vmap' a:map_options lhs rhs
+  execute 'omap' a:map_options lhs rhs
   return lhs
 endfunction
 
