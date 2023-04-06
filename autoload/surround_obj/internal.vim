@@ -136,7 +136,12 @@ function! s:change_surround(start_pattern, end_pattern, start_delimiter, end_del
     return
   endif
 
-  call s:select_outer_inclusive(start_head, start_tail)
+  if s:position_lt(start_tail, end_head)
+    call s:select_outer_inclusive(start_head, start_tail)
+  else
+    " The head of the tail position overlaps the tail of the head position.
+    call s:select_outer_exclusive(start_head, end_head)
+  endif
 
   call s:put_text('p', a:start_delimiter)
 endfunction
@@ -168,12 +173,11 @@ function! s:delete_surround(start_pattern, end_pattern) abort
     return
   endif
 
-  if start_tail[0] > end_head[0]
-  \  || (start_tail[0] == end_head[0] && start_tail[1] >= end_head[1])
+  if s:position_lt(start_tail, end_head)
+    call s:select_outer_inclusive(start_head, start_tail)
+  else
     " The head of the tail position overlaps the tail of the head position.
     call s:select_outer_exclusive(start_head, end_head)
-  else
-    call s:select_outer_inclusive(start_head, start_tail)
   endif
 
   normal! "_d
@@ -307,34 +311,29 @@ function! s:search_inline(pattern) abort
   " Move the cursor to the the first column of the current line.
   normal! 0
 
-  let start_edges = s:search_inline_edges(a:pattern, 'Wc', cursor[0])
-  if start_edges is 0
-    call cursor(cursor)
-    return 0
-  endif
-
-  let [start_head, start_tail] = start_edges
-  let is_inclusive = 1
+  let start_flags = 'Wc'
 
   while 1
+    let start_edges = s:search_inline_edges(a:pattern, start_flags, cursor[0])
+    if start_edges is 0
+      call cursor(cursor)
+      return 0
+    endif
+
     let end_edges = s:search_inline_edges(a:pattern, 'W', cursor[0])
     if end_edges is 0
       call cursor(cursor)
       return 0
     endif
 
+    let [start_head, start_tail] = start_edges
     let [end_head, end_tail] = end_edges
 
-    if (is_inclusive
-    \   && s:range_contains_inclusive(start_head, end_tail, cursor))
-    \  || (!is_inclusive
-    \      && s:range_contains_exclusive(start_head, end_tail, cursor))
+    if s:range_contains_inclusive(start_head, end_tail, cursor)
       return [start_head, start_tail, end_head, end_tail]
     endif
 
-    let start_head = end_head
-    let start_tail = end_tail
-    let is_inclusive = !is_inclusive
+    let start_flags = 'W'
   endwhile
 endfunction
 

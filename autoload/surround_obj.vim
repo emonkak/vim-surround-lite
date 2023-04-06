@@ -53,7 +53,7 @@ function! surround_obj#define_built_in_objects(...) abort
       call surround_obj#define_object(key, {
       \   'type': 'inline',
       \   'delimiter': key,
-      \   'pattern': surround_obj#make_pattern(key),
+      \   'pattern': s:make_pattern(key),
       \ })
     endif
   endfor
@@ -64,8 +64,8 @@ function! surround_obj#define_built_in_objects(...) abort
       \   'type': 'block',
       \   'delimiter': [start_delimiter, end_delimiter],
       \   'pattern': [
-      \     surround_obj#make_pattern(start_delimiter),
-      \     surround_obj#make_pattern(end_delimiter)
+      \     s:make_pattern(start_delimiter),
+      \     s:make_pattern(end_delimiter)
       \   ],
       \ })
     endif
@@ -129,29 +129,6 @@ function! surround_obj#define_object(key, object) abort
   call s:define_object_mappings(a:key, a:object, '')
 
   let s:loaded_objects[a:key] = a:object
-endfunction
-
-function! surround_obj#make_pattern(delimiter) abort
-  let delimiter = a:delimiter
-  let prefix = '\V'
-  let suffix = ''
-
-  if strchars(delimiter) == 1
-    " Skip an character escaped by backslash.
-    let prefix .= '\%(\[^\\]\\\)\@<!'
-  endif
-
-  if delimiter[0] == ' '
-    let delimiter = substitute(delimiter, '^\s\+', '', '')
-    let prefix .= '\s\*'
-  endif
-
-  if delimiter[-1:] == ' '
-    let delimiter = substitute(delimiter, '\s\+$', '', '')
-    let suffix .= '\s\*'
-  endif
-
-  return prefix . escape(delimiter, '\') . suffix
 endfunction
 
 function! surround_obj#_find_object(key) abort
@@ -280,6 +257,31 @@ function! s:ignore_unbounded_key() abort
     call getchar()
   endif
   return ''
+endfunction
+
+function! s:make_pattern(delimiter) abort
+  let delimiter = a:delimiter
+  let prefix = ''
+  let suffix = ''
+
+  if delimiter[0] == ' '
+    let delimiter = substitute(delimiter, '^\s\+', '', '')
+    let prefix .= '\s\*'
+  endif
+
+  if delimiter[-1:] == ' '
+    let delimiter = substitute(delimiter, '\s\+$', '', '')
+    let suffix .= '\s\*'
+  endif
+
+  if strchars(delimiter) == 1
+    " Skip an character escaped by backslash.
+    let prefix = '\V\%(\[^\\]\\\)\@<!' . prefix
+  else
+    let prefix = '\V' . prefix
+  endif
+
+  return prefix . escape(delimiter, '\') . suffix
 endfunction
 
 function! s:map_operator_key_sequences(key, textobj, map_options) abort
