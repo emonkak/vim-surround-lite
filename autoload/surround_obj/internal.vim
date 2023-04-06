@@ -103,10 +103,10 @@ endfunction
 
 function! s:ask_delimiters() abort
   if s:last_operator_delimiters is 0
-    let char = nr2char(getchar())
-    let object = g:surround_obj#_find_object(char)
+    let key = nr2char(getchar())
+    let object = g:surround_obj#_find_object(key)
     if object isnot 0
-      let s:last_operator_delimiters = s:get_delimiters(object)
+      let s:last_operator_delimiters = s:get_delimiters(key, object)
     else
       let s:last_operator_delimiters = -1
     endif
@@ -179,7 +179,7 @@ function! s:delete_surround(start_pattern, end_pattern) abort
   normal! "_d
 endfunction
 
-function! s:get_delimiters(object) abort
+function! s:get_delimiters(key, object) abort
   if a:object.type ==# 'block'
     let delimiters = type(a:object.delimiter) == v:t_func
     \              ? a:object.delimiter()
@@ -190,8 +190,16 @@ function! s:get_delimiters(object) abort
     \             ? a:object.delimiter()
     \             : a:object.delimiter
     return [delimiter, delimiter]
+  elseif a:object.type ==# 'transition'
+    let key = a:key . nr2char(getchar())
+    let object = g:surround_obj#_find_object(key)
+    if object isnot 0
+      return s:get_delimiters(key, object)
+    else
+      return -1
+    endif
   else
-    return ['', '']
+    return -1
   endif
 endfunction
 

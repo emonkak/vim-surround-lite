@@ -24,6 +24,18 @@ call surround_obj#define_object('U', {
 \   'pattern': '__',
 \ })
 
+call surround_obj#define_object('jk', {
+\   'type': 'block',
+\   'delimiter': ['「', '」'],
+\   'pattern': ['「', '」'],
+\ })
+
+call surround_obj#define_object('jK', {
+\   'type': 'block',
+\   'delimiter': ['『', '』'],
+\   'pattern': ['『', '』'],
+\ })
+
 function! s:test_surround_add() abort
   call s:do_test('ysl"', 'A B C', '"A" B C')
   call s:do_test('fBysl"', 'A B C', 'A "B" C')
@@ -44,6 +56,16 @@ function! s:test_surround_add() abort
   call s:do_test('fBysl)', 'A B C', 'A ( B ) C')
   call s:do_test('fCysl)', 'A B C', 'A B ( C )')
   call s:do_test('ys$)', 'A B C', '( A B C )')
+
+  call s:do_test('ysljk', 'A B C', '「A」 B C')
+  call s:do_test('fBysljk', 'A B C', 'A 「B」 C')
+  call s:do_test('fCysljk', 'A B C', 'A B 「C」')
+  call s:do_test('ys$jk', 'A B C', '「A B C」')
+
+  call s:do_test('ysljK', 'A B C', '『A』 B C')
+  call s:do_test('fBysljK', 'A B C', 'A 『B』 C')
+  call s:do_test('fCysljK', 'A B C', 'A B 『C』')
+  call s:do_test('ys$jK', 'A B C', '『A B C』')
 
   call s:do_test("ysltdiv\<CR>", 'A B C', '<div>A</div> B C')
   call s:do_test("fBysltdiv\<CR>", 'A B C', 'A <div>B</div> C')
@@ -162,6 +184,28 @@ function! s:test_surround_change() abort
   call s:do_test('cs)}', '(A )', '{ A }')
   call s:do_test('cs)}', '(A)', '{ A }')
 
+  call s:do_test('cs(jk', '( A )', '「 A 」')
+  call s:do_test('cs(jk', '(  A  )', '「  A  」')
+  call s:do_test('cs(jk', '( A)', '「 A」')
+  call s:do_test('cs(jk', '(A )', '「A 」')
+
+  call s:do_test('cs(jK', '( A )', '『 A 』')
+  call s:do_test('cs(jK', '(  A  )', '『  A  』')
+  call s:do_test('cs(jK', '( A)', '『 A』')
+  call s:do_test('cs(jK', '(A )', '『A 』')
+
+  call s:do_test('csjk(', '「 A 」', '( A )')
+  call s:do_test('csjk(', '「  A  」', '(  A  )')
+  call s:do_test('csjk(', '「 A」', '( A)')
+  call s:do_test('csjk(', '「A 」', '(A )')
+  call s:do_test('csjk(', '「A」', '(A)')
+
+  call s:do_test('csjK(', '『 A 』', '( A )')
+  call s:do_test('csjK(', '『  A  』', '(  A  )')
+  call s:do_test('csjK(', '『 A』', '( A)')
+  call s:do_test('csjK(', '『A 』', '(A )')
+  call s:do_test('csjK(', '『A』', '(A)')
+
   call s:do_test("csttp\<CR>", '<div></div>', '<p></p>')
   call s:do_test("csttp\<CR>", '<div>A</div>', '<p>A</p>')
   call s:do_test("csttp\<CR>", '<div>A </div>', '<p>A </p>')
@@ -278,15 +322,6 @@ function! s:test_surround_delete() abort
   call s:do_test('f(dsb', '  ()  ', '    ')
   call s:do_test('f(dsb', '  (A)  ', '  A  ')
 
-  call s:do_test('ds(', '( \(A )', ' \(A ')
-  call s:do_test('ds(', '( A\) )', ' A\) ')
-  call s:do_test('ds(', '( \(A\) )', ' \(A\) ')
-
-  call s:do_test('ds(', "(\nA)", "\nA")
-  call s:do_test('ds(', "(A\n)", "A\n")
-  call s:do_test('ds(', "((\nA))", "(\nA)")
-  call s:do_test('ds(', "((A\n))", "(A\n)")
-
   call s:do_test('$ds(', '()', '')
   call s:do_test('$ds(', '(A)', 'A')
   call s:do_test('$ds(', '(A )', 'A ')
@@ -311,6 +346,35 @@ function! s:test_surround_delete() abort
   call s:do_test('fAds(', '(A)B(C)', 'AB(C)')
   call s:do_test('fBds(', '(A)B(C)', '(A)B(C)')
   call s:do_test('fCds(', '(A)B(C)', '(A)BC')
+
+  call s:do_test('ds(', '( \(A )', ' \(A ')
+  call s:do_test('ds(', '( A\) )', ' A\) ')
+  call s:do_test('ds(', '( \(A\) )', ' \(A\) ')
+
+  call s:do_test('ds(', "(\nA)", "\nA")
+  call s:do_test('ds(', "(A\n)", "A\n")
+  call s:do_test('ds(', "((\nA))", "(\nA)")
+  call s:do_test('ds(', "((A\n))", "(A\n)")
+
+  call s:do_test('dsjk', '「」', '')
+  call s:do_test('dsjk', '「A」', 'A')
+  call s:do_test('dsjk', '「A 」', 'A ')
+  call s:do_test('dsjk', '「 A」', ' A')
+  call s:do_test('dsjk', '「 A 」', ' A ')
+  call s:do_test('dsjk', '「A「」」', 'A「」')
+  call s:do_test("fAldsjk", '「A「」」', '「A」')
+  call s:do_test("wdsjk", '  「」  ', '    ')
+  call s:do_test("wdsjk", '  「A」  ', '  A  ')
+
+  call s:do_test('dsjK', '『』', '')
+  call s:do_test('dsjK', '『A』', 'A')
+  call s:do_test('dsjK', '『A 』', 'A ')
+  call s:do_test('dsjK', '『 A』', ' A')
+  call s:do_test('dsjK', '『 A 』', ' A ')
+  call s:do_test('dsjK', '『A『』』', 'A『』')
+  call s:do_test("fAldsjK", '『A『』』', '『A』')
+  call s:do_test("wdsjK", '  『』  ', '    ')
+  call s:do_test("wdsjK", '  『A』  ', '  A  ')
 
   call s:do_test('dst', '<div></div>', '')
   call s:do_test('dst', '<div>A</div>', 'A')

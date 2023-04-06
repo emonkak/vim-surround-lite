@@ -1,12 +1,5 @@
 let s:loaded_objects = {}
 
-let s:KEY_NOTATION_TABLE = {
-\   '|': '<Bar>',
-\   '\': '<Bslash>',
-\   '<': '<Lt>',
-\   ' ': '<Space>',
-\ }
-
 function! surround_obj#define_built_in_objects(...) abort
   let INLINE_OBJECTS = [
   \   '!',
@@ -105,15 +98,36 @@ function! surround_obj#define_built_in_objects(...) abort
 endfunction
 
 function! surround_obj#define_local_object(key, object) abort
-  call s:define_object(a:key, a:object, '<buffer>')
   if !exists('b:surround_obj_loaded_objects')
     let b:surround_obj_loaded_objects = {}
   endif
+
+  let transition_keys = split(a:key, '.\zs')[:-2]
+
+  for i in range(len(transition_keys))
+    let key = join(transition_keys[:i])
+    let s:surround_obj_loaded_objects[key] = {
+    \   'type': 'transition',
+    \ }
+  endfor
+
+  call s:define_object_mappings(a:key, a:object, '<buffer>')
+
   let b:surround_obj_loaded_objects[a:key] = a:object
 endfunction
 
 function! surround_obj#define_object(key, object) abort
-  call s:define_object(a:key, a:object, '')
+  let transition_keys = split(a:key, '.\zs')[:-2]
+
+  for i in range(len(transition_keys))
+    let key = join(transition_keys[:i])
+    let s:loaded_objects[key] = {
+    \   'type': 'transition',
+    \ }
+  endfor
+
+  call s:define_object_mappings(a:key, a:object, '')
+
   let s:loaded_objects[a:key] = a:object
 endfunction
 
@@ -172,7 +186,7 @@ function! s:ask_tag_name() abort
   return [start_delimiter, end_delimiter]
 endfunction
 
-function! s:define_object(key, object, map_options) abort
+function! s:define_object_mappings(key, object, map_options) abort
   if a:object.type ==# 'block'
     if has_key(a:object, 'pattern')
       let textobj_i = s:define_textobj_block('i',
@@ -252,15 +266,41 @@ function! s:define_textobj_inline(kind, key, pattern, map_options) abort
   return lhs
 endfunction
 
+function! s:escape_key(key) abort
+  let key = a:key
+  let key = substitute(key, ' ', '<Space>', 'g')
+  let key = substitute(key, '<', '<Lt>', 'g')
+  let key = substitute(key, '\', '<Bslash>', 'g')
+  let key = substitute(key, '|', '<Bar>', 'g')
+  return key
+endfunction
+
+function! s:ignore_unbounded_key() abort
+  if getchar(1) isnot 0
+    call getchar()
+  endif
+  return ''
+endfunction
+
 function! s:map_operator_key_sequences(key, textobj, map_options) abort
-  let key_notation = get(s:KEY_NOTATION_TABLE, a:key, a:key)
+  let key_characters = split(a:key, '.\zs')
+  for i in range(0, len(key_characters) - 2)
+    let escaped_key = s:escape_key(join(key_characters[:i]))
+    execute 'nnoremap <expr>'
+    \       ('<Plug>(surround-obj-change)' . escaped_key)
+    \       '<SID>ignore_unbounded_key()'
+    execute 'nnoremap <expr>'
+    \       ('<Plug>(surround-obj-delete)' . escaped_key)
+    \       '<SID>ignore_unbounded_key()'
+  endfor
+  let escaped_key = s:escape_key(a:key)
   execute 'nmap <silent>'
   \       (a:map_options)
-  \       ('<Plug>(surround-obj-change)' . key_notation)
+  \       ('<Plug>(surround-obj-change)' . escaped_key)
   \       ('<SID>(operator-change)' . a:textobj)
   execute 'nmap <silent>'
   \       (a:map_options)
-  \       ('<Plug>(surround-obj-delete)' . key_notation)
+  \       ('<Plug>(surround-obj-delete)' . escaped_key)
   \       ('<SID>(operator-delete)' . a:textobj)
 endfunction
 
