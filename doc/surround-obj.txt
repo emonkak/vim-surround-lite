@@ -1,0 +1,339 @@
+*surround_obj.txt*	Surround the text by a delimiter
+
+Author: Shota Nozaki <emonkak@gmail.com>
+License: MIT license
+
+==============================================================================
+CONTENTS					*surround-obj-contents*
+
+Introduction	|surround-obj-introduction|
+Usage		|surround-obj-examples|
+Interface	|surround-obj-interface|
+  Key Mappings	|surround-obj-key-mappings|
+  Functions	|surround-obj-functions|
+Notes		|surround-obj-notes|
+
+==============================================================================
+INTRODUCTION					*surround-obj-introduction*
+
+*surround-obj* is a Vim plugin to provide three operations: "add", "change",
+and "delete" for the surround object, which represent the text surrounded by
+any delimiter string. It has basic objects such as brackets, quotes, and tags are
+built-in, and you can also define your own.
+
+Requirements:
+
+- Vim 8.0 or later
+
+==============================================================================
+USAGE							*surround-obj-usage*
+
+By default, "surround-obj" does not define any key mappings and surround
+objects. For example, you can define key mappings and surround objects as
+follows:
+>
+	map ys  <Plug>(surround-obj-add)
+	nmap cs  <Plug>(surround-obj-change)
+	nmap ds  <Plug>(surround-obj-delete)
+
+	" Define built-in surround objects (such as brackets, quotes, and
+	" tags)
+	call surround_obj#define_built_in_objects()
+
+==============================================================================
+INTERFACE					*surround-obj-interface*
+
+------------------------------------------------------------------------------
+KEY MAPPINGS					*surround-obj-key-mappings*
+
+<Plug>(surround-obj-add){motion}{key}	*<Plug>(surround-obj-add)*
+	Surround {motion} text with delimiters on both sides, as shown in the
+	following table (suppose the mapping is mapped to "ys", and all
+	built-in surround objects are defined):
+
+	input         | before | after       ~
+	--------------+--------+------------ ~
+	yse(          | #foo   | #(foo)
+	yse(.         | #foo   | #((foo))
+	yse)          | #foo   | #( foo )
+	yse"          | #foo   | #"foo"
+	yse'          | #foo   | #'foo'
+	ysetp<CR>     | #foo   | #<p>foo</p>
+	ysefprint<CR> | #foo   | #print(foo)
+
+	Note: '#' indicates the cursor
+
+<Plug>(surround-obj-change){key}{key}		*<Plug>(surround-obj-change)*
+	Change the delimiter string surrounding the text, as show in the
+	following table (suppose the mapping is mapped to "cs", and all
+	built-in surround objects are defined):
+
+	input     | before           | after           ~
+	----------+------------------+---------------- ~
+	cs'"      | #'foo'           | #"foo"
+	cs'"      | 'foo#'           | #"foo"
+	cs'"      | #'\'foo\''       | #"\'foo\'"
+	cs({      | #(foo)           | #{foo}
+	cs({      | #(foo())         | #{foo()}
+	cs({      | (foo#())         | (foo#{})
+	csttp<CR> | #<div>foo</div>  | #<p>foo</p>
+	csttp<CR> | <div>#foo</div>  | #<p>foo</p>
+	csttp<CR> | <div>foo</div#>  | #<div>foo</div>
+
+	Note: '#' indicates the cursor
+
+	Not in Normal mode, it does nothing.
+
+<Plug>(surround-obj-delete){key}		*<Plug>(surround-obj-delete)*
+	Delete the delimiter string from the text surrounded by it, as show in
+	the following table (suppose the mapping is mapped to "ds", and all
+	built-in surround objects are defined):
+
+	input | before           | after    ~
+	------+------------------+--------- ~
+	ds'   | #'foo'           | #foo
+	ds'   | 'foo#'           | #foo
+	ds'   | #'\'foo\''       | #\'foo\'
+	ds(   | #(foo)           | #foo
+	ds(   | #(foo())         | #foo()
+	ds(   | (foo#())         | (foo#)
+	dst   | #<div>foo</div>  | #foo
+	dst   | <div>#foo</div>  | #foo
+	dst   | <div>foo</div#>  | #foo
+
+	Note: '#' indicates the cursor
+
+	Not in Normal mode, it does nothing.
+
+<Plug>(surround-obj-a:{key})			*<Plug>(surround-obj-a:{key})*
+	Text object for a text surrounded by the delimiter string that
+	includes the delimiter string itself. However, unlike built-in "a"
+	text objects, it does not include white-space.
+
+	Example 1: "a quoted text" (input <Plug>(surround-obj-a:"))
+>
+	printf('hello %s', #'world')
+	                    ^-----^
+
+	Example 1: "a quoted text" (input <Plug>(surround-obj-a:"))
+>
+	printf('hello %s', #'world')
+	                    ^-----^
+<
+	Example 2-1: "a tag block" for outer <div>
+	             (input <Plug>(surround-obj-a:t))
+>
+	#<div>
+	 ^----
+	  <div>hello world</div>
+	  ----------------------
+	</div>
+	-----^
+<
+	Example 2-2: "a tag block" for inner <div>
+	             (input <Plug>(surround-obj-a:t))
+>
+	<div>
+	  #<div>hello world</div>
+	   ^--------------------^
+	</div>
+<
+	Note: '#' indicates the cursor
+
+<Plug>(surround-obj-i:{key})			*<Plug>(surround-obj-i:{key})*
+	Text object for the inside of a text surrounded by the delimiter
+	string.
+
+	Example 1: "inner quoted text" (input <Plug>(surround-obj-i:"))
+>
+	printf('hello %s', #'world')
+	                     ^---^
+<
+	Example 2-1: "inner tag block" for inner <div>
+	             (input <Plug>(surround-obj-i:t))
+>
+	#<div>
+	  <div>hello world</div>
+	  ^--------------------^
+	</div>
+<
+	Example 2-2: "inner tag block" for outer <div>
+	             (input <Plug>(surround-obj-i:t))
+>
+	<div>
+	  #<div>hello world</div>
+	        ^---------^
+	</div>
+<
+	Note: '#' indicates the cursor
+
+------------------------------------------------------------------------------
+FUNCTIONS					*surround-obj-functions*
+
+surround_obj#define_object({key}, {object})	*surround_obj#define_object()*
+	Define a new surround object to {key} from {object}. There are three
+	types of surround objects that can be defined:
+
+	(1) Block Object ~
+
+	Block Object is a multi-line text that is surrounded by different
+	delimiter strings at the beginning and end. The object is defined by
+	a dictionary with the following keys:
+
+	key         type                  description                       ~
+	------------------------------------------------------------------- ~
+	type        |String|              must be "block"
+	delimiter   |List| or |Funcref|   a pair of delimiter strings or a
+	                                  function that returns the pair of
+	                                  delimiter strings
+	pattern     |List|                a pair of a pattern to search the
+	                                  delimiter
+
+	Example 1: Double square brackets block, useful in shell script
+>
+	call surround_obj#define_object('R', {
+	\   'type': 'block',
+	\   'delimiter': ['[[ ', ' ]]'],
+	\   'pattern': ['\[\[\s*', '\s*\]\]'],
+	\ })
+<
+	Example 2: Latex \begin{} command object
+>
+	function! s:ask_latex_env() abort
+	  let env = input('\begin{')
+	  return ['\begin{' . env . '}', '\end{' . env . '}']
+	endfunction
+
+	call surround_obj#define_object('\', {
+	\   'type': 'block',
+	\   'delimiter': function('s:ask_latex_env'),
+	\   'pattern': ['\begin{\h\w*}', '\end{\h\w*}'],
+	\ })
+<
+	(2) Inline Object ~
+
+	Inline Object is a single-line text that is surrounded by same
+	delimiter strings at the both sides. The object is defined by
+	a dictionary with the following keys:
+
+	key         type                    description                      ~
+	-------------------------------------------------------------------- ~
+	type        |String|                must be "inline"
+	delimiter   |String| or |Funcref|   a delimiter string or a function
+	                                    that returns the delimiter
+	                                    string
+	            |String|                a pattern to search the delimiter
+
+	Example: A text between double asterisks for markdown bold text
+>
+	call surround_obj#define_object('E', {
+	\   'type': 'inline',
+	\   'delimiter': '**',
+	\   'pattern': '\*\*',
+	\ })
+<
+	(3) Alias Object ~
+
+	An Alias Object represents a reference to another surround object. It
+	makes it possible to assign an existing surround object to a different
+	key.
+
+	Example: Assigning the surround object for '[' to 'r'
+>
+	call surround_obj#define_object('r', {
+	\   'type': 'alias' ,
+	\   'key': '[',
+	\ })
+<
+				*surround_obj#define_local_object()*
+surround_obj#define_local_object({key}, {object})
+	Same as |surround_obj#define_object()|, but define buffer-local
+	surround objects.
+
+				*surround_obj#define_built_in_object()*
+surround_obj#define_built_in_object([{allow_list}])
+	Define built-in Surround Objects as shown in the following table:
+
+	key   type     delimiter   ~
+	-------------------------- ~
+	!     inline   '!'
+	"     inline   '"'
+	#     inline   '#'
+	$     inline   '$'
+	%     inline   '%'
+	&     inline   '&'
+	'     inline   '''
+	(     block    '(', ')'
+	)     block    '( ', ' )'
+	*     inline   '*'
+	+     inline   '+'
+	,     inline   ','
+	-     inline   '-'
+	.     inline   '.'
+	/     inline   '/'
+	:     inline   ':'
+	;     inline   ';'
+	<     block    '<', '>'
+	=     inline   '='
+	>     block    '< ', ' >'
+	?     inline   '?'
+	@     inline   '@'
+	B     alias    alias to '{'
+	[     block    '[', ']'
+	\     inline   '\'
+	]     block    '[ ', ' ]'
+	^     inline   '^'
+	_     inline   '_'
+	`     inline   '`'
+	b     alias    alias to '('
+	f     block    interactive function call block (such as "f()")
+	t     block    interactive tag block (such as "<div></div>")
+	{     block    '{', '}'
+	|     inline   '|'
+	}     block    '{ ', ' }
+	~     inline   '~'
+
+	If {allow_list} is present, the built-in surround objects specified in
+	the list are only defined:
+>
+	call surround_obj#define_built_in_object(['(', ')', 'b'])
+<
+==============================================================================
+NOTES							*surround-obj-notes*
+
+------------------------------------------------------------------------------
+DIFFERENCES FROM BUILT-IN TEXT OBJECTS
+
+The "change" and "delete" operations are implemented through a combination of
+operator and text object provided by "surround-obj" itself. Text objects are
+exposed and can be directly used by the user. Note that these text objects
+have slight differences to the built-in ones.
+
+(1) Our block objects do not ignore delimiters inside quotes.
+
+When the '%' character is not present in 'cpoptions', The built-in text
+objects like |a(| find blocks ignoring delimiters inside quotes. For example
+(Note that '#' indicates the cursor):
+>
+	(# ")" )
+	^------^
+>
+However, our text objects do not recognize delimiters inside quotes:
+>
+	(# ")" )
+	^---^
+>
+(2) Our inline objects always respect matching delimiters.
+
+Built-in text objects like |a"| sometimes indicate a range enclosed by
+mismatched delimiters depending on the cursor position. For example (Note
+that '#' indicates the cursor):
+>
+	"apple" #and "banana"
+	      ^------^
+>
+However, our text objects always respect matching delimiters, so there is no
+range recognized at the same cursor position.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help
