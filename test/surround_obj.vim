@@ -707,7 +707,7 @@ function! s:do_test(key_sequence, source, expected_result, ...) abort
     0verbose call feedkeys(a:key_sequence, 'x')
     call assert_equal(a:expected_result, join(getline(1, line('$')), "\n"))
   finally
-    close!
+    bdelete!
   endtry
 endfunction
 
