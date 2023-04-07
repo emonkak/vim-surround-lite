@@ -106,7 +106,7 @@ function! surround_obj#define_local_object(key, object) abort
 
   for i in range(len(transition_keys))
     let key = join(transition_keys[:i])
-    let s:surround_obj_loaded_objects[key] = {
+    let b:surround_obj_loaded_objects[key] = {
     \   'type': 'transition',
     \ }
   endfor
