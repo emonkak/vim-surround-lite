@@ -71,7 +71,7 @@ function s:run(runtime_dir) abort
         \   'messages': messages,
         \ })
         echon 'FAILED' "\n"
-      elseif type(return_value) == v:t_string 
+      elseif type(return_value) == v:t_string
         let ignored += 1
         call add(errors, {
         \   'script_name': script_name,
