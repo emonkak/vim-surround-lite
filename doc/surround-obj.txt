@@ -18,8 +18,8 @@ INTRODUCTION					*surround-obj-introduction*
 
 *surround-obj* is a Vim plugin to provide three operations: "add", "change",
 and "delete" for the surround object, which represent the text surrounded by
-any delimiter string. It has basic objects such as brackets, quotes, and tags are
-built-in, and you can also define your own.
+any delimiter string. It has basic objects such as brackets, quotes, and tags
+are built-in, and you can also define your own.
 
 Requirements:
 
@@ -182,12 +182,15 @@ surround_obj#define_object({key}, {object})	*surround_obj#define_object()*
 
 	key         type                  description                       ~
 	------------------------------------------------------------------- ~
-	type        |String|              must be "block"
-	delimiter   |List| or |Funcref|   a pair of delimiter strings or a
+	type        |String|              Must be "block"
+	delimiter   |List| or |Funcref|   A pair of delimiter strings or a
 	                                  function that returns the pair of
 	                                  delimiter strings
-	pattern     |List|                a pair of a pattern to search the
-	                                  delimiter
+	pattern     optional |List|       A pair of a pattern to search the
+	                                  delimiter, if this key does not
+	                                  exist, the text object is not
+	                                  defined and only the "add"
+	                                  operation is available.
 
 	Example 1: Double square brackets block, useful in shell script
 >
@@ -218,11 +221,15 @@ surround_obj#define_object({key}, {object})	*surround_obj#define_object()*
 
 	key         type                    description                      ~
 	-------------------------------------------------------------------- ~
-	type        |String|                must be "inline"
-	delimiter   |String| or |Funcref|   a delimiter string or a function
+	type        |String|                Must be "inline"
+	delimiter   |String| or |Funcref|   A delimiter string or a function
 	                                    that returns the delimiter
 	                                    string
-	            |String|                a pattern to search the delimiter
+	pattern     optional |String|       A pattern to search the
+	                                    delimiter, if this key is not
+	                                    exist, the text object is not
+	                                    defined and only the "add"
+	                                    operation is available.
 
 	Example: A text between double asterisks for markdown bold text
 >
