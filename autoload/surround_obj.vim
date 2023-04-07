@@ -261,24 +261,18 @@ endfunction
 
 function! s:make_pattern(delimiter) abort
   let delimiter = a:delimiter
-  let prefix = ''
+  " Skip an character escaped by backslash.
+  let prefix = '\V\%(\\\@1<!\\\)\@2<!'
   let suffix = ''
 
-  if delimiter[0] == ' '
+  if delimiter =~ '^\s'
     let delimiter = substitute(delimiter, '^\s\+', '', '')
     let prefix .= '\s\*'
   endif
 
-  if delimiter[-1:] == ' '
+  if delimiter =~ '\s$'
     let delimiter = substitute(delimiter, '\s\+$', '', '')
     let suffix .= '\s\*'
-  endif
-
-  if strchars(delimiter) == 1
-    " Skip an character escaped by backslash.
-    let prefix = '\V\%(\[^\\]\\\)\@<!' . prefix
-  else
-    let prefix = '\V' . prefix
   endif
 
   return prefix . escape(delimiter, '\') . suffix
