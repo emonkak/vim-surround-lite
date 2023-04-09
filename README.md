@@ -1,6 +1,6 @@
 # surround-obj
 
-**surround-obj** is a Vim plugin to provide three operations: "add", "change", and "delete" for the surround object, which represent the text surrounded by any delimiter string. It has basic objects such as brackets, quotes, and tags are built-in, and you can also define your own.
+**surround-obj** is a Vim plugin to provide three operations: "add", "change", and "delete" for the surround object, which represent the text surrounded by any delimiter strings. It has built-in surround objects such as parentheses, quotes, tags, and so on, and you can also define your own one.
 
 ## Requirements
 
