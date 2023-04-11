@@ -51,7 +51,7 @@ KEY MAPPINGS					*surround-obj-key-mappings*
 	following table (suppose the mapping is mapped to "ys", and all
 	built-in surround objects are defined):
 
-	input         | before | after       ~
+	Input         | Before | After       ~
 	--------------+--------+------------ ~
 	yse(          | #foo   | #(foo)
 	yse(.         | #foo   | #((foo))
@@ -68,7 +68,7 @@ KEY MAPPINGS					*surround-obj-key-mappings*
 	following table (suppose the mapping is mapped to "cs", and all
 	built-in surround objects are defined):
 
-	input     | before           | after           ~
+	Input     | Before           | After           ~
 	----------+------------------+---------------- ~
 	cs'"      | #'foo'           | #"foo"
 	cs'"      | 'foo#'           | #"foo"
@@ -89,7 +89,7 @@ KEY MAPPINGS					*surround-obj-key-mappings*
 	the following table (suppose the mapping is mapped to "ds", and all
 	built-in surround objects are defined):
 
-	input | before           | after    ~
+	Input | Before           | After    ~
 	------+------------------+--------- ~
 	ds'   | #'foo'           | #foo
 	ds'   | 'foo#'           | #foo
@@ -180,7 +180,7 @@ surround_obj#define_object({key}, {object})	*surround_obj#define_object()*
 	delimiter strings at the beginning and end. The object is defined by
 	a dictionary with the following keys:
 
-	key         type                  description                       ~
+	Key         Type                  Description                       ~
 	------------------------------------------------------------------- ~
 	type        |String|              Must be "block"
 	delimiter   |List| or |Funcref|   A pair of delimiter strings or a
@@ -219,7 +219,7 @@ surround_obj#define_object({key}, {object})	*surround_obj#define_object()*
 	delimiter strings at the both sides. The object is defined by
 	a dictionary with the following keys:
 
-	key         type                    description                      ~
+	Key         Type                    Description                      ~
 	-------------------------------------------------------------------- ~
 	type        |String|                Must be "inline"
 	delimiter   |String| or |Funcref|   A delimiter string or a function
@@ -261,7 +261,7 @@ surround_obj#define_local_object({key}, {object})
 surround_obj#define_built_in_object([{allow_list}])
 	Define built-in Surround Objects as shown in the following table:
 
-	key   type     delimiter   ~
+	Key   Type     Delimiter   ~
 	-------------------------- ~
 	!     inline   '!'
 	"     inline   '"'
