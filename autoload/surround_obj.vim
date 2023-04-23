@@ -222,7 +222,7 @@ function! s:define_textobj_block(kind, key, start_pattern, end_pattern, map_opti
   let lhs = printf('<Plug>(surround-obj-%s:%s)',
   \                a:kind,
   \                escape(a:key, '|'))
-  let rhs = printf(':<C-u>call surround_obj#internal#textobj_block_%s(%s, %s)<CR>',
+  let rhs = printf(':<C-u>call surround_obj#core#textobj_block_%s(%s, %s)<CR>',
   \                a:kind,
   \                escape(string(a:start_pattern), '|'),
   \                escape(string(a:end_pattern), '|'))
@@ -235,7 +235,7 @@ function! s:define_textobj_inline(kind, key, pattern, map_options) abort
   let lhs = printf('<Plug>(surround-obj-%s:%s)',
   \                a:kind,
   \                escape(a:key, '|'))
-  let rhs = printf(':<C-u>call surround_obj#internal#textobj_inline_%s(%s)<CR>',
+  let rhs = printf(':<C-u>call surround_obj#core#textobj_inline_%s(%s)<CR>',
   \                a:kind,
   \                escape(string(a:pattern), '|'))
   execute 'vnoremap <silent>' a:map_options lhs rhs
@@ -301,6 +301,6 @@ function! s:map_operator_key_sequences(key, textobj, map_options) abort
 endfunction
 
 nnoremap <expr> <SID>(operator-change)
-\        surround_obj#internal#setup_operator('surround_obj#internal#operator_change')
+\        surround_obj#core#setup_operator('surround_obj#core#operator_change')
 nnoremap <expr> <SID>(operator-delete)
-\        surround_obj#internal#setup_operator('surround_obj#internal#operator_delete')
+\        surround_obj#core#setup_operator('surround_obj#core#operator_delete')

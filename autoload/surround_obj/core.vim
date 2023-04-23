@@ -4,7 +4,7 @@ let s:last_operator_delimiters = 0
 
 let s:last_operator_patterns = 0
 
-function! surround_obj#internal#operator_add(motion_wiseness) abort
+function! surround_obj#core#operator_add(motion_wiseness) abort
   let delimiters = s:ask_delimiters()
   if type(delimiters) == v:t_list
     let [start_delimiter, end_delimiter] = delimiters
@@ -13,7 +13,7 @@ function! surround_obj#internal#operator_add(motion_wiseness) abort
   let s:is_running_operator = 0
 endfunction
 
-function! surround_obj#internal#operator_change(motion_wiseness) abort
+function! surround_obj#core#operator_change(motion_wiseness) abort
   if s:last_operator_patterns isnot 0
     let delimiters = s:ask_delimiters()
     if type(delimiters) == v:t_list
@@ -28,7 +28,7 @@ function! surround_obj#internal#operator_change(motion_wiseness) abort
   let s:is_running_operator = 0
 endfunction
 
-function! surround_obj#internal#operator_delete(motion_wiseness) abort
+function! surround_obj#core#operator_delete(motion_wiseness) abort
   if s:last_operator_patterns isnot 0
     let [start_pattern, end_pattern] = s:last_operator_patterns
     call s:delete_surround(start_pattern, end_pattern)
@@ -36,7 +36,7 @@ function! surround_obj#internal#operator_delete(motion_wiseness) abort
   let s:is_running_operator = 0
 endfunction
 
-function! surround_obj#internal#setup_operator(operator_func) abort
+function! surround_obj#core#setup_operator(operator_func) abort
   let &operatorfunc = a:operator_func
   let s:is_running_operator = 1
   let s:last_operator_delimiters = 0
@@ -44,7 +44,7 @@ function! surround_obj#internal#setup_operator(operator_func) abort
   return 'g@'
 endfunction
 
-function! surround_obj#internal#textobj_block_a(start_pattern, end_pattern) abort
+function! surround_obj#core#textobj_block_a(start_pattern, end_pattern) abort
   let quad_positions = s:search_block(a:start_pattern, a:end_pattern)
   if quad_positions isnot 0
     let [start_head, start_tail, end_head, end_tail] = quad_positions
@@ -55,7 +55,7 @@ function! surround_obj#internal#textobj_block_a(start_pattern, end_pattern) abor
   endif
 endfunction
 
-function! surround_obj#internal#textobj_block_i(start_pattern, end_pattern) abort
+function! surround_obj#core#textobj_block_i(start_pattern, end_pattern) abort
   let quad_positions = s:search_block(a:start_pattern, a:end_pattern)
   if quad_positions isnot 0
     let [start_head, start_tail, end_head, end_tail] = quad_positions
@@ -66,7 +66,7 @@ function! surround_obj#internal#textobj_block_i(start_pattern, end_pattern) abor
   endif
 endfunction
 
-function! surround_obj#internal#textobj_inline_a(pattern) abort
+function! surround_obj#core#textobj_inline_a(pattern) abort
   let quad_positions = s:search_inline(a:pattern)
   if quad_positions isnot 0
     let [start_head, start_tail, end_head, end_tail] = quad_positions
@@ -77,7 +77,7 @@ function! surround_obj#internal#textobj_inline_a(pattern) abort
   endif
 endfunction
 
-function! surround_obj#internal#textobj_inline_i(pattern) abort
+function! surround_obj#core#textobj_inline_i(pattern) abort
   let quad_positions = s:search_inline(a:pattern)
   if quad_positions isnot 0
     let [start_head, start_tail, end_head, end_tail] = quad_positions

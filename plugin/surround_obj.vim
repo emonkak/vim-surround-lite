@@ -3,9 +3,9 @@ if exists('g:loaded_surround_obj')
 endif
 
 nnoremap <expr> <Plug>(surround-obj-add)
-\        surround_obj#internal#setup_operator('surround_obj#internal#operator_add')
+\        surround_obj#core#setup_operator('surround_obj#core#operator_add')
 vnoremap <expr> <Plug>(surround-obj-add)
-\        surround_obj#internal#setup_operator('surround_obj#internal#operator_add')
+\        surround_obj#core#setup_operator('surround_obj#core#operator_add')
 onoremap <Plug>(surround-obj-add) g@
 
 map <Plug>(surround-obj-change) <Nop>
