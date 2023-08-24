@@ -8,14 +8,31 @@
 
 ## Usage
 
-The plugin does not provide any default key mappings and settings. You have to configure like the following:
+The plugin does not provide any default key mappings. You have to configure like the following:
 
 ```vim
 map ys  <Plug>(surround-obj-add)
 nmap cs  <Plug>(surround-obj-change)
 nmap ds  <Plug>(surround-obj-delete)
 
-call surround_obj#define_built_in_objects()
+" Add some user-definied surround objects.
+let g:surround_obj_config = {
+\   'a': { 'type': 'block', 'delimiter': ['<', '>'] },
+\   'e': { 'type': 'inline', 'delimiter': '_' },
+\   'r': { 'type': 'block', 'delimiter': ['[', ']'] },
+\   's': { 'type': 'inline', 'delimiter': '**' },
+\   'jA': {'type': 'block', 'delimiter': ['≪', '≫']},
+\   'ja': {'type': 'block', 'delimiter': ['＜', '＞']},
+\   'jb': {'type': 'block', 'delimiter': ['（', '）']},
+\   'jB': {'type': 'block', 'delimiter': ['｛', '｝']},
+\   'jk': {'type': 'block', 'delimiter': ['「', '」']},
+\   'jK': {'type': 'block', 'delimiter': ['『', '』']},
+\   'jr': {'type': 'block', 'delimiter': ['［', '］']},
+\   'js': {'type': 'block', 'delimiter': ['【', '】']},
+\   'jt': {'type': 'block', 'delimiter': ['〔', '〕']},
+\   'jy': {'type': 'block', 'delimiter': ['〈', '〉']},
+\   'jY': {'type': 'block', 'delimiter': ['《', '》']},
+\ }
 ```
 
 ## Documentation

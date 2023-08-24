@@ -1,40 +1,15 @@
+let g:surround_obj_config = {
+\   'e': { 'type': 'inline', 'delimiter': '_' },
+\   's': {
+\     'type': 'inline',
+\     'delimiter': '**',
+\     'pattern': '\V\%(\\\@1<!\\\)\@2<!**',
+\   },
+\   'jb': { 'type': 'block', 'delimiter': ['（', '）'] },
+\   'jB': { 'type': 'block', 'delimiter': ['｛', '｝'] },
+\ }
+
 runtime! plugin/surround_obj.vim
-
-call surround_obj#define_built_in_objects([
-\   "'",
-\   '"',
-\   '(',
-\   ')',
-\   '_',
-\   'b',
-\   'f',
-\   't',
-\   '{',
-\   '}',
-\ ])
-
-call surround_obj#define_object('e', {
-\   'type': 'alias',
-\   'key': '_',
-\ })
-
-call surround_obj#define_object('E', {
-\   'type': 'inline',
-\   'delimiter': '**',
-\   'pattern': '\*\*',
-\ })
-
-call surround_obj#define_object('jb', {
-\   'type': 'block',
-\   'delimiter': ['（', '）'],
-\   'pattern': ['（', '）'],
-\ })
-
-call surround_obj#define_object('jB', {
-\   'type': 'block',
-\   'delimiter': ['｛', '｝'],
-\   'pattern': ['｛', '｝'],
-\ })
 
 function! s:test_add_block() abort
   call s:do_test('yse(', '#foo bar baz', '(foo) bar baz')
@@ -81,10 +56,10 @@ function! s:test_add_inline() abort
   call s:do_test("yse'", 'foo bar #baz', "foo bar 'baz'")
   call s:do_test("ys$'", '#foo bar baz', "'foo bar baz'")
 
-  call s:do_test("yseE", '#foo bar baz', "**foo** bar baz")
-  call s:do_test("yseE", 'foo #bar baz', "foo **bar** baz")
-  call s:do_test("yseE", 'foo bar #baz', "foo bar **baz**")
-  call s:do_test("ys$E", '#foo bar baz', "**foo bar baz**")
+  call s:do_test("yses", '#foo bar baz', "**foo** bar baz")
+  call s:do_test("yses", 'foo #bar baz', "foo **bar** baz")
+  call s:do_test("yses", 'foo bar #baz', "foo bar **baz**")
+  call s:do_test("ys$s", '#foo bar baz', "**foo bar baz**")
 endfunction
 
 function! s:test_add_repeat() abort
@@ -275,32 +250,32 @@ function! s:test_change_inline() abort
   call s:do_test('cs"(', '"foo"bar"#baz"', '"foo"bar(baz)')
   call s:do_test('cs"(', '"foo"bar"baz#"', '"foo"bar(baz)')
 
-  call s:do_test('csEe', '#****', '__')
-  call s:do_test('csEe', '*#***', '__')
-  call s:do_test('csEe', '**#**', '__')
-  call s:do_test('csEe', '***#*', '__')
-  call s:do_test('csEe', '#**foo**', '_foo_')
-  call s:do_test('csEe', '*#*foo**', '_foo_')
-  call s:do_test('csEe', '**#foo**', '_foo_')
-  call s:do_test('csEe', '**foo#**', '_foo_')
-  call s:do_test('csEe', '**foo*#*', '_foo_')
-  call s:do_test('csEe', '# ** foo ** ', ' ** foo ** ')
-  call s:do_test('csEe', ' #** foo ** ', ' _ foo _ ')
-  call s:do_test('csEe', ' *#* foo ** ', ' _ foo _ ')
-  call s:do_test('csEe', ' **# foo ** ', ' _ foo _ ')
-  call s:do_test('csEe', ' ** foo #** ', ' _ foo _ ')
-  call s:do_test('csEe', ' ** foo *#* ', ' _ foo _ ')
-  call s:do_test('csEe', ' ** foo **# ', ' ** foo ** ')
-  call s:do_test('csEe', '#**foo**bar**baz**', '_foo_bar**baz**')
-  call s:do_test('csEe', '*#*foo**bar**baz**', '_foo_bar**baz**')
-  call s:do_test('csEe', '**#foo**bar**baz**', '_foo_bar**baz**')
-  call s:do_test('csEe', '**foo#**bar**baz**', '_foo_bar**baz**')
-  call s:do_test('csEe', '**foo*#*bar**baz**', '_foo_bar**baz**')
-  call s:do_test('csEe', '**foo**#bar**baz**', '**foo**bar**baz**')
-  call s:do_test('csEe', '**foo**bar#**baz**', '**foo**bar_baz_')
-  call s:do_test('csEe', '**foo**bar*#*baz**', '**foo**bar_baz_')
-  call s:do_test('csEe', '**foo**bar**baz#**', '**foo**bar_baz_')
-  call s:do_test('csEe', '**foo**bar**baz*#*', '**foo**bar_baz_')
+  call s:do_test('csse', '#****', '__')
+  call s:do_test('csse', '*#***', '__')
+  call s:do_test('csse', '**#**', '__')
+  call s:do_test('csse', '***#*', '__')
+  call s:do_test('csse', '#**foo**', '_foo_')
+  call s:do_test('csse', '*#*foo**', '_foo_')
+  call s:do_test('csse', '**#foo**', '_foo_')
+  call s:do_test('csse', '**foo#**', '_foo_')
+  call s:do_test('csse', '**foo*#*', '_foo_')
+  call s:do_test('csse', '# ** foo ** ', ' ** foo ** ')
+  call s:do_test('csse', ' #** foo ** ', ' _ foo _ ')
+  call s:do_test('csse', ' *#* foo ** ', ' _ foo _ ')
+  call s:do_test('csse', ' **# foo ** ', ' _ foo _ ')
+  call s:do_test('csse', ' ** foo #** ', ' _ foo _ ')
+  call s:do_test('csse', ' ** foo *#* ', ' _ foo _ ')
+  call s:do_test('csse', ' ** foo **# ', ' ** foo ** ')
+  call s:do_test('csse', '#**foo**bar**baz**', '_foo_bar**baz**')
+  call s:do_test('csse', '*#*foo**bar**baz**', '_foo_bar**baz**')
+  call s:do_test('csse', '**#foo**bar**baz**', '_foo_bar**baz**')
+  call s:do_test('csse', '**foo#**bar**baz**', '_foo_bar**baz**')
+  call s:do_test('csse', '**foo*#*bar**baz**', '_foo_bar**baz**')
+  call s:do_test('csse', '**foo**#bar**baz**', '**foo**bar**baz**')
+  call s:do_test('csse', '**foo**bar#**baz**', '**foo**bar_baz_')
+  call s:do_test('csse', '**foo**bar*#*baz**', '**foo**bar_baz_')
+  call s:do_test('csse', '**foo**bar**baz#**', '**foo**bar_baz_')
+  call s:do_test('csse', '**foo**bar**baz*#*', '**foo**bar_baz_')
 endfunction
 
 function! s:test_change_repeat() abort
@@ -532,32 +507,32 @@ function! s:test_delete_inline() abort
   call s:do_test('ds"', '"foo"bar"#baz"', '"foo"barbaz')
   call s:do_test('ds"', '"foo"bar"baz#"', '"foo"barbaz')
 
-  call s:do_test('dsE', '#****', '')
-  call s:do_test('dsE', '*#***', '')
-  call s:do_test('dsE', '**#**', '')
-  call s:do_test('dsE', '***#*', '')
-  call s:do_test('dsE', '#**foo**', 'foo')
-  call s:do_test('dsE', '*#*foo**', 'foo')
-  call s:do_test('dsE', '**#foo**', 'foo')
-  call s:do_test('dsE', '**foo#**', 'foo')
-  call s:do_test('dsE', '**foo*#*', 'foo')
-  call s:do_test('dsE', '# ** foo ** ', ' ** foo ** ')
-  call s:do_test('dsE', ' #** foo ** ', '  foo  ')
-  call s:do_test('dsE', ' *#* foo ** ', '  foo  ')
-  call s:do_test('dsE', ' **# foo ** ', '  foo  ')
-  call s:do_test('dsE', ' ** foo #** ', '  foo  ')
-  call s:do_test('dsE', ' ** foo *#* ', '  foo  ')
-  call s:do_test('dsE', ' ** foo **# ', ' ** foo ** ')
-  call s:do_test('dsE', '#**foo**bar**baz**', 'foobar**baz**')
-  call s:do_test('dsE', '*#*foo**bar**baz**', 'foobar**baz**')
-  call s:do_test('dsE', '**#foo**bar**baz**', 'foobar**baz**')
-  call s:do_test('dsE', '**foo#**bar**baz**', 'foobar**baz**')
-  call s:do_test('dsE', '**foo*#*bar**baz**', 'foobar**baz**')
-  call s:do_test('dsE', '**foo**#bar**baz**', '**foo**bar**baz**')
-  call s:do_test('dsE', '**foo**bar#**baz**', '**foo**barbaz')
-  call s:do_test('dsE', '**foo**bar*#*baz**', '**foo**barbaz')
-  call s:do_test('dsE', '**foo**bar**baz#**', '**foo**barbaz')
-  call s:do_test('dsE', '**foo**bar**baz*#*', '**foo**barbaz')
+  call s:do_test('dss', '#****', '')
+  call s:do_test('dss', '*#***', '')
+  call s:do_test('dss', '**#**', '')
+  call s:do_test('dss', '***#*', '')
+  call s:do_test('dss', '#**foo**', 'foo')
+  call s:do_test('dss', '*#*foo**', 'foo')
+  call s:do_test('dss', '**#foo**', 'foo')
+  call s:do_test('dss', '**foo#**', 'foo')
+  call s:do_test('dss', '**foo*#*', 'foo')
+  call s:do_test('dss', '# ** foo ** ', ' ** foo ** ')
+  call s:do_test('dss', ' #** foo ** ', '  foo  ')
+  call s:do_test('dss', ' *#* foo ** ', '  foo  ')
+  call s:do_test('dss', ' **# foo ** ', '  foo  ')
+  call s:do_test('dss', ' ** foo #** ', '  foo  ')
+  call s:do_test('dss', ' ** foo *#* ', '  foo  ')
+  call s:do_test('dss', ' ** foo **# ', ' ** foo ** ')
+  call s:do_test('dss', '#**foo**bar**baz**', 'foobar**baz**')
+  call s:do_test('dss', '*#*foo**bar**baz**', 'foobar**baz**')
+  call s:do_test('dss', '**#foo**bar**baz**', 'foobar**baz**')
+  call s:do_test('dss', '**foo#**bar**baz**', 'foobar**baz**')
+  call s:do_test('dss', '**foo*#*bar**baz**', 'foobar**baz**')
+  call s:do_test('dss', '**foo**#bar**baz**', '**foo**bar**baz**')
+  call s:do_test('dss', '**foo**bar#**baz**', '**foo**barbaz')
+  call s:do_test('dss', '**foo**bar*#*baz**', '**foo**barbaz')
+  call s:do_test('dss', '**foo**bar**baz#**', '**foo**barbaz')
+  call s:do_test('dss', '**foo**bar**baz*#*', '**foo**barbaz')
 endfunction
 
 function! s:test_delete_repeat() abort
@@ -611,13 +586,6 @@ function! s:test_delete_tag() abort
   call s:do_test('dst', "<div><div><div>foo</div>\nbar</div>\n#baz</div>", "<div><div>foo</div>\nbar</div>\nbaz")
   call s:do_test('dst', "<div><div><div>foo</div>\nbar</div>\nbaz#</div>", "<div><div>foo</div>\nbar</div>\nbaz")
   call s:do_test('dst', "<div><div><div>foo</div>\nbar</div>\nbaz</div#>", "<div><div>foo</div>\nbar</div>\nbaz")
-endfunction
-
-function! s:test_local_object() abort
-  call s:do_test("ysef", '#foo', 'function() { foo }', function('s:setup_local_object'))
-  call s:do_test('cs(f', '#(foo)', 'function() { foo }', function('s:setup_local_object'))
-  call s:do_test('csf(', '#function() { foo }', '(foo)', function('s:setup_local_object'))
-  call s:do_test("dsf", '#function() { foo }', 'foo', function('s:setup_local_object'))
 endfunction
 
 function! s:test_textobj_block_a() abort
@@ -690,15 +658,12 @@ function! s:test_textobj_tag_i() abort
   call s:do_test("d\<Plug>(surround-obj-i:t)", ' <div> foo </div># ', ' <div> foo </div> ')
 endfunction
 
-function! s:do_test(key_sequence, source, expected_result, ...) abort
-  new
+function! s:do_test(key_sequence, source, expected_result) abort
+  enew!
   try 
     map <buffer> ys  <Plug>(surround-obj-add)
     nmap <buffer> cs  <Plug>(surround-obj-change)
     nmap <buffer> ds  <Plug>(surround-obj-delete)
-    if a:0 > 0
-      call a:1()
-    endif
     silent put =a:source
     normal! ggdd0
     if search('#', 'Wc') isnot 0
@@ -707,14 +672,6 @@ function! s:do_test(key_sequence, source, expected_result, ...) abort
     0verbose call feedkeys(a:key_sequence, 'x')
     call assert_equal(a:expected_result, join(getline(1, line('$')), "\n"))
   finally
-    bdelete!
+    bwipeout!
   endtry
-endfunction
-
-function! s:setup_local_object() abort
-  call surround_obj#define_local_object('f', {
-  \   'type': 'block',
-  \   'delimiter': ['function() { ', ' }'],
-  \   'pattern': ['\<function\s*(\s*)\s*{\s*', '\s*}'],
-  \ })
 endfunction
