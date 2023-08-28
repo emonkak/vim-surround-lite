@@ -131,23 +131,21 @@ function! s:change_surround(start_pattern, end_pattern, start_delimiter, end_del
   let start_head = getpos("'[")[1:]
   let end_tail = getpos("']")[1:]
 
-  call cursor(end_tail)
-
-  let end_head = searchpos(a:end_pattern, 'Wbcn')
-  if end_head is 0
+  let inner_edge = s:search_inner_edge(
+  \   a:start_pattern,
+  \   a:end_pattern,
+  \   start_head,
+  \   end_tail
+  \ )
+  if inner_edge is 0
     return
   endif
+
+  let [start_tail, end_head] = inner_edge
 
   call s:select_outer_inclusive(end_head, end_tail)
 
   call s:put_text('p', a:end_delimiter)
-
-  call cursor(start_head)
-
-  let start_tail = searchpos(a:start_pattern, 'Wecn')
-  if start_tail is 0
-    return
-  endif
 
   if s:position_lt(start_tail, end_head)
     call s:select_outer_inclusive(start_head, start_tail)
@@ -168,23 +166,21 @@ function! s:delete_surround(start_pattern, end_pattern) abort
   let start_head = getpos("'[")[1:]
   let end_tail = getpos("']")[1:]
 
-  call cursor(end_tail)
-
-  let end_head = searchpos(a:end_pattern, 'Wbcn')
-  if end_head is 0
+  let inner_edge = s:search_inner_edge(
+  \   a:start_pattern,
+  \   a:end_pattern,
+  \   start_head,
+  \   end_tail
+  \ )
+  if inner_edge is 0
     return
   endif
+
+  let [start_tail, end_head] = inner_edge
 
   call s:select_outer_inclusive(end_head, end_tail)
 
   normal! "_d
-
-  call cursor(start_head)
-
-  let start_tail = searchpos(a:start_pattern, 'Wcen')
-  if start_tail is 0
-    return
-  endif
 
   if s:position_lt(start_tail, end_head)
     call s:select_outer_inclusive(start_head, start_tail)
@@ -378,6 +374,26 @@ function! s:search_inline_edges(pattern, flags, stopline) abort
   endif
 
   return [head, tail]
+endfunction
+
+function! s:search_inner_edge(start_pattern, end_pattern, start_head, end_tail) abort
+  call cursor(a:end_tail)
+
+  let end_head = searchpos(a:end_pattern, 'Wbcn')
+  if end_head is 0
+  \  || !s:range_contains_inclusive(a:start_head, a:end_tail, end_head)
+    return
+  endif
+
+  call cursor(a:start_head)
+
+  let start_tail = searchpos(a:start_pattern, 'Wecn')
+  if start_tail is 0
+  \  || !s:range_contains_inclusive(a:start_head, a:end_tail, start_tail)
+    return
+  endif
+
+  return [start_tail, end_head]
 endfunction
 
 function! s:select_inner(start_pos, end_pos) abort
