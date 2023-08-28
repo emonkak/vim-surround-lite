@@ -66,9 +66,19 @@ function! s:test_add_repeat() abort
   if !has('patch-8.0.0548')
     return '"." command does not work inside functions.'
   endif
+
+  call s:do_test('ys$(', '#foo', '(foo)')
   call s:do_test('ys$(.', '#foo', '((foo))')
   call s:do_test('ys$(..', '#foo', '(((foo)))')
-  call s:do_test('ys$(...', '#foo', '((((foo))))')
+  call s:do_test('1ys$(', '#foo', '(foo)')
+  call s:do_test('1ys$(.', '#foo', '((foo))')
+  call s:do_test('1ys$(..', '#foo', '(((foo)))')
+  call s:do_test('2ys$(', '#foo', '((foo))')
+  call s:do_test('2ys$(.', '#foo', '((((foo))))')
+  call s:do_test('2ys$(..', '#foo', '((((((foo))))))')
+  call s:do_test('3ys$(', '#foo', '(((foo)))')
+  call s:do_test('3ys$(.', '#foo', '((((((foo))))))')
+  call s:do_test('3ys$(..', '#foo', '(((((((((foo)))))))))')
 endfunction
 
 function! s:test_add_tag() abort
@@ -245,7 +255,7 @@ function! s:test_change_inline() abort
   call s:do_test('cs"(', '#"foo"bar"baz"', '(foo)bar"baz"')
   call s:do_test('cs"(', '"#foo"bar"baz"', '(foo)bar"baz"')
   call s:do_test('cs"(', '"foo#"bar"baz"', '(foo)bar"baz"')
-  call s:do_test('cs"(', '"foo"#bar"baz"', '"foo"bar"baz"')
+  call s:do_test('cs"(', '"foo"#bar"baz"', '"foo(bar)baz"')
   call s:do_test('cs"(', '"foo"bar#"baz"', '"foo"bar(baz)')
   call s:do_test('cs"(', '"foo"bar"#baz"', '"foo"bar(baz)')
   call s:do_test('cs"(', '"foo"bar"baz#"', '"foo"bar(baz)')
@@ -271,8 +281,8 @@ function! s:test_change_inline() abort
   call s:do_test('csse', '**#foo**bar**baz**', '_foo_bar**baz**')
   call s:do_test('csse', '**foo#**bar**baz**', '_foo_bar**baz**')
   call s:do_test('csse', '**foo*#*bar**baz**', '_foo_bar**baz**')
-  call s:do_test('csse', '**foo**#bar**baz**', '**foo**bar**baz**')
-  call s:do_test('csse', '**foo**bar#**baz**', '**foo**bar_baz_')
+  call s:do_test('csse', '**foo**#bar**baz**', '**foo_bar_baz**')
+  call s:do_test('csse', '**foo**bar#**baz**', '**foo_bar_baz**')
   call s:do_test('csse', '**foo**bar*#*baz**', '**foo**bar_baz_')
   call s:do_test('csse', '**foo**bar**baz#**', '**foo**bar_baz_')
   call s:do_test('csse', '**foo**bar**baz*#*', '**foo**bar_baz_')
@@ -282,9 +292,35 @@ function! s:test_change_repeat() abort
   if !has('patch-8.0.0548')
     return '"." command does not work inside functions.'
   endif
-  call s:do_test('cs({.', '((((#foo))))', '(({{foo}}))')
-  call s:do_test('cs({..', '((((#foo))))', '({{{foo}}})')
-  call s:do_test('cs({...', '((((#foo))))', '{{{{foo}}}}')
+
+  call s:do_test('cs({', '(foo(bar(baz#())))', '(foo(bar(baz{})))')
+  call s:do_test('cs({.', '(foo(bar(baz#())))', '(foo(bar{baz{}}))')
+  call s:do_test('cs({..', '(foo(bar(baz#())))', '(foo{bar{baz{}}})')
+  call s:do_test('cs({...', '(foo(bar(baz#())))', '{foo{bar{baz{}}}}')
+
+  call s:do_test('1cs({', '(foo(bar(baz#())))', '(foo(bar(baz{})))')
+  call s:do_test('2cs({.', '(foo(bar(baz#())))', '{foo(bar{baz()})}')
+  call s:do_test('3cs({', '(foo(bar(baz#())))', '(foo{bar(baz())})')
+  call s:do_test('4cs({', '(foo(bar(baz#())))', '{foo(bar(baz()))}')
+
+  call s:do_test('1cs"_', '#"foo" "bar"', '_foo_ "bar"')
+  call s:do_test('2cs"_', '#"foo" "bar"', '_foo" _bar"')
+  call s:do_test('3cs"_', '#"foo" "bar"', '_foo" "bar_')
+  call s:do_test('4cs"_', '#"foo" "bar"', '"foo" "bar"')
+
+  call s:do_test('1cs"_', '"foo#" "bar"', '_foo_ "bar"')
+  call s:do_test('2cs"_', '"foo#" "bar"', '_foo" _bar"')
+  call s:do_test('3cs"_', '"foo#" "bar"', '_foo" "bar_')
+  call s:do_test('4cs"_', '"foo#" "bar"', '"foo" "bar"')
+
+  call s:do_test('1cs"_', '"foo"# "bar"', '"foo_ _bar"')
+  call s:do_test('2cs"_', '"foo"# "bar"', '"foo_ "bar_')
+
+  call s:do_test('1cs"_', '"foo" #"bar"', '"foo" _bar_')
+  call s:do_test('2cs"_', '"foo" #"bar"', '"foo" "bar"')
+
+  call s:do_test('1cs"_', '"foo" "bar#"', '"foo" _bar_')
+  call s:do_test('2cs"_', '"foo" "bar#"', '"foo" "bar"')
 endfunction
 
 function! s:test_change_tag() abort
@@ -502,7 +538,7 @@ function! s:test_delete_inline() abort
   call s:do_test('ds"', '#"foo"bar"baz"', 'foobar"baz"')
   call s:do_test('ds"', '"#foo"bar"baz"', 'foobar"baz"')
   call s:do_test('ds"', '"foo#"bar"baz"', 'foobar"baz"')
-  call s:do_test('ds"', '"foo"#bar"baz"', '"foo"bar"baz"')
+  call s:do_test('ds"', '"foo"#bar"baz"', '"foobarbaz"')
   call s:do_test('ds"', '"foo"bar#"baz"', '"foo"barbaz')
   call s:do_test('ds"', '"foo"bar"#baz"', '"foo"barbaz')
   call s:do_test('ds"', '"foo"bar"baz#"', '"foo"barbaz')
@@ -528,8 +564,8 @@ function! s:test_delete_inline() abort
   call s:do_test('dss', '**#foo**bar**baz**', 'foobar**baz**')
   call s:do_test('dss', '**foo#**bar**baz**', 'foobar**baz**')
   call s:do_test('dss', '**foo*#*bar**baz**', 'foobar**baz**')
-  call s:do_test('dss', '**foo**#bar**baz**', '**foo**bar**baz**')
-  call s:do_test('dss', '**foo**bar#**baz**', '**foo**barbaz')
+  call s:do_test('dss', '**foo**#bar**baz**', '**foobarbaz**')
+  call s:do_test('dss', '**foo**bar#**baz**', '**foobarbaz**')
   call s:do_test('dss', '**foo**bar*#*baz**', '**foo**barbaz')
   call s:do_test('dss', '**foo**bar**baz#**', '**foo**barbaz')
   call s:do_test('dss', '**foo**bar**baz*#*', '**foo**barbaz')
@@ -539,9 +575,34 @@ function! s:test_delete_repeat() abort
   if !has('patch-8.0.0548')
     return '"." command does not work inside functions.'
   endif
-  call s:do_test('ds(.', '((((#foo))))', '((foo))')
-  call s:do_test('ds(..', '((((#foo))))', '(foo)')
-  call s:do_test('ds(...', '((((#foo))))', 'foo')
+
+  call s:do_test('ds(', '(foo(bar(baz#())))', '(foo(bar(baz)))')
+  call s:do_test('ds(.', '(foo(bar(baz#())))', '(foo(barbaz))')
+  call s:do_test('ds(..', '(foo(bar(baz#())))', '(foobarbaz)')
+  call s:do_test('ds(...', '(foo(bar(baz#())))', 'foobarbaz')
+  call s:do_test('2ds(', '(foo(bar(baz#())))', '(foo(barbaz()))')
+  call s:do_test('2ds(.', '(foo(bar(baz#())))', 'foo(barbaz())')
+  call s:do_test('3ds(', '(foo(bar(baz#())))', '(foobar(baz()))')
+  call s:do_test('4ds(', '(foo(bar(baz#())))', 'foo(bar(baz()))')
+
+  call s:do_test('1ds"', '#"foo" "bar"', 'foo "bar"')
+  call s:do_test('2ds"', '#"foo" "bar"', 'foo" bar"')
+  call s:do_test('3ds"', '#"foo" "bar"', 'foo" "bar')
+  call s:do_test('4ds"', '#"foo" "bar"', '"foo" "bar"')
+
+  call s:do_test('1ds"', '"foo#" "bar"', 'foo "bar"')
+  call s:do_test('2ds"', '"foo#" "bar"', 'foo" bar"')
+  call s:do_test('3ds"', '"foo#" "bar"', 'foo" "bar')
+  call s:do_test('4ds"', '"foo#" "bar"', '"foo" "bar"')
+
+  call s:do_test('1ds"', '"foo"# "bar"', '"foo bar"')
+  call s:do_test('2ds"', '"foo"# "bar"', '"foo "bar')
+
+  call s:do_test('1ds"', '"foo" #"bar"', '"foo" bar')
+  call s:do_test('2ds"', '"foo" #"bar"', '"foo" "bar"')
+
+  call s:do_test('1ds"', '"foo" "bar#"', '"foo" bar')
+  call s:do_test('2ds"', '"foo" "bar#"', '"foo" "bar"')
 endfunction
 
 function! s:test_delete_tag() abort
@@ -594,6 +655,12 @@ function! s:test_textobj_block_a() abort
   call s:do_test("d\<Plug>(surround-obj-a:b)", ' (# foo ) ', '  ')
   call s:do_test("d\<Plug>(surround-obj-a:b)", ' ( foo #) ', '  ')
   call s:do_test("d\<Plug>(surround-obj-a:b)", ' ( foo )# ', ' ( foo ) ')
+
+  call s:do_test("d2\<Plug>(surround-obj-a:b)", ' #(( foo )) ', ' (( foo )) ')
+  call s:do_test("d2\<Plug>(surround-obj-a:b)", ' (#( foo )) ', '  ')
+  call s:do_test("d2\<Plug>(surround-obj-a:b)", ' ((# foo )) ', '  ')
+  call s:do_test("d2\<Plug>(surround-obj-a:b)", ' (( foo #)) ', '  ')
+  call s:do_test("d2\<Plug>(surround-obj-a:b)", ' (( foo )#) ', ' (( foo )) ')
 endfunction
 
 function! s:test_textobj_block_i() abort
@@ -602,6 +669,12 @@ function! s:test_textobj_block_i() abort
   call s:do_test("d\<Plug>(surround-obj-i:b)", ' (# foo ) ', ' () ')
   call s:do_test("d\<Plug>(surround-obj-i:b)", ' ( foo #) ', ' () ')
   call s:do_test("d\<Plug>(surround-obj-i:b)", ' ( foo )# ', ' ( foo ) ')
+
+  call s:do_test("d2\<Plug>(surround-obj-i:b)", ' #(( foo )) ', ' (( foo )) ')
+  call s:do_test("d2\<Plug>(surround-obj-i:b)", ' (#( foo )) ', ' () ')
+  call s:do_test("d2\<Plug>(surround-obj-i:b)", ' ((# foo )) ', ' () ')
+  call s:do_test("d2\<Plug>(surround-obj-i:b)", ' (( foo #)) ', ' () ')
+  call s:do_test("d2\<Plug>(surround-obj-i:b)", ' (( foo )#) ', ' (( foo )) ')
 endfunction
 
 function! s:test_textobj_function_call_a() abort
