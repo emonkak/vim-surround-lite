@@ -145,19 +145,21 @@ function! s:define_objects() abort
 endfunction
 
 function! s:define_operator_mappings(objects) abort
-  nnoremap <expr> <Plug>(surround-obj-add)
-  \        surround_obj#do_operator('surround_obj#operator_add')
-  vnoremap <expr> <Plug>(surround-obj-add)
-  \        surround_obj#do_operator('surround_obj#operator_add')
+  nnoremap <silent> <Plug>(surround-obj-add)
+  \        :<C-u>call surround_obj#setup_operator('surround_obj#operator_add')<CR>g@
+  vnoremap <silent> <Plug>(surround-obj-add)
+  \        :<C-u>call surround_obj#setup_operator('surround_obj#operator_add')<CR>g@
   onoremap <Plug>(surround-obj-add)  g@
 
   noremap <Plug>(surround-obj-change)  <Nop>
   noremap <Plug>(surround-obj-delete)  <Nop>
 
-  noremap <expr> <SID>(operator-change)
-  \       surround_obj#do_operator('surround_obj#operator_change')
-  noremap <expr> <SID>(operator-delete)
-  \       surround_obj#do_operator('surround_obj#operator_delete')
+  noremap <silent> <script> <SID>(operator-change)
+  \       :<C-u>call surround_obj#setup_operator('surround_obj#operator_change')<CR><SID>(count)g@
+  noremap <silent> <script> <SID>(operator-delete)
+  \       :<C-u>call surround_obj#setup_operator('surround_obj#operator_delete')<CR><SID>(count)g@
+
+  noremap <expr> <SID>(count)  surround_obj#count()
 
   for [key, object] in items(a:objects)
     let escaped_key = s:escape_key(key)
