@@ -54,13 +54,15 @@ let s:BUILTIN_DEFINITIONS = {
 \ }
 
 function! s:define_block_object(key, definition) abort
-  let pattern = has_key(a:definition, 'pattern')
-  \           ? a:definition.pattern
-  \           : type(a:definition.delimiter) is v:t_list
-  \           ? map(copy(a:definition.delimiter), 's:make_pattern(v:val)')
-  \           : 0
-  if pattern is 0
-    throw 'You must specify the "pattern" when the "delimiter" is a function.'
+  if !has_key(a:definition, 'pattern')
+    if type(a:definition.delimiter) is v:t_list
+      let a:definition.pattern = map(
+      \   copy(a:definition.delimiter),
+      \   's:make_pattern(v:val)'
+      \ )
+    else
+      throw 'You must specify the "pattern" when the "delimiter" is a function.'
+    endif
   endif
   for kind in ['i', 'a']
     let lhs = printf(
@@ -71,27 +73,21 @@ function! s:define_block_object(key, definition) abort
     let rhs = printf(
     \   ':<C-u>call surround_obj#textobj_block_%s(%s, %s)<CR>',
     \   kind,
-    \   escape(string(pattern[0]), '|'),
-    \   escape(string(pattern[1]), '|')
+    \   escape(string(a:definition.pattern[0]), '|'),
+    \   escape(string(a:definition.pattern[1]), '|')
     \ )
     execute 'vnoremap <silent>' lhs rhs
     execute 'onoremap <silent>' lhs rhs
   endfor
-  return {
-  \   'type': 'block',
-  \   'delimiter': a:definition.delimiter,
-  \   'pattern': pattern,
-  \ }
 endfunction
 
 function! s:define_inline_object(key, definition) abort
-  let pattern = has_key(a:definition, 'pattern')
-  \           ? a:definition.pattern
-  \           : type(a:definition.delimiter) is v:t_string
-  \           ? s:make_pattern(a:definition.delimiter)
-  \           : 0
-  if pattern is 0
-    throw 'You must specify the "pattern" when the "delimiter" is a function.'
+  if !has_key(a:definition, 'pattern')
+    if type(a:definition.delimiter) is v:t_string
+      let a:definition.pattern = s:make_pattern(a:definition.delimiter)
+    else
+      throw 'You must specify the "pattern" when the "delimiter" is a function.'
+    endif
   endif
   for kind in ['i', 'a']
     let lhs = printf(
@@ -102,16 +98,11 @@ function! s:define_inline_object(key, definition) abort
     let rhs = printf(
     \   ':<C-u>call surround_obj#textobj_inline_%s(%s)<CR>',
     \   kind,
-    \   escape(string(pattern), '|')
+    \   escape(string(a:definition.pattern), '|')
     \ )
     execute 'vnoremap <silent>' lhs rhs
     execute 'onoremap <silent>' lhs rhs
   endfor
-  return {
-  \   'type': 'inline',
-  \   'delimiter': a:definition.delimiter,
-  \   'pattern': pattern,
-  \ }
 endfunction
 
 function! s:define_objects() abort
@@ -124,9 +115,9 @@ function! s:define_objects() abort
 
   for [key, definition] in items(definitions)
     if definition.type ==# 'block'
-      let loaded_objects[key] = s:define_block_object(key, definition)
+      call s:define_block_object(key, definition)
     elseif definition.type ==# 'inline'
-      let loaded_objects[key] = s:define_inline_object(key, definition)
+      call s:define_inline_object(key, definition)
     elseif definition.type ==# 'nop'
       continue
     else
@@ -146,6 +137,8 @@ function! s:define_objects() abort
         \ }
       endif
     endfor
+
+    let loaded_objects[key] = definition
   endfor
 
   return loaded_objects
