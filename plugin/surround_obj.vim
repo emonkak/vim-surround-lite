@@ -148,7 +148,7 @@ function! s:define_operator_mappings(objects) abort
   nnoremap <silent> <Plug>(surround-obj-add)
   \        :<C-u>call surround_obj#setup_operator('surround_obj#operator_add')<CR>g@
   vnoremap <silent> <Plug>(surround-obj-add)
-  \        :<C-u>call surround_obj#setup_operator('surround_obj#operator_add')<CR>g@
+  \        :<C-u>call surround_obj#setup_operator('surround_obj#operator_add')<CR>gvg@
   onoremap <Plug>(surround-obj-add)  g@
 
   noremap <Plug>(surround-obj-change)  <Nop>
