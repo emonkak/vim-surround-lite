@@ -25,7 +25,8 @@ function! surround_obj#operator_add(motion_wiseness) abort
   let delimiters = s:ask_delimiters()
   if type(delimiters) == v:t_list
     let [start_delimiter, end_delimiter] = delimiters
-    call s:add_surround(start_delimiter, end_delimiter, s:count)
+    let l:count = v:count > 0 ? v:count : s:count
+    call s:add_surround(start_delimiter, end_delimiter, l:count)
   endif
   let s:is_pending_operator = 0
 endfunction
@@ -40,8 +41,7 @@ function! surround_obj#operator_change(motion_wiseness) abort
       \   start_pattern,
       \   end_pattern,
       \   start_delimiter,
-      \   end_delimiter,
-      \   s:count
+      \   end_delimiter
       \ )
     endif
   endif
@@ -134,7 +134,7 @@ function! s:ask_delimiters() abort
   return s:last_delimiters
 endfunction
 
-function! s:change_surround(start_pattern, end_pattern, start_delimiter, end_delimiter, count) abort
+function! s:change_surround(start_pattern, end_pattern, start_delimiter, end_delimiter) abort
   let start_head = getpos("'[")[1:]
   let end_tail = getpos("']")[1:]
 
