@@ -16,7 +16,7 @@ nmap cs  <Plug>(surround-obj-change)
 nmap ds  <Plug>(surround-obj-delete)
 
 " Add some user-definied surround objects.
-let g:surround_obj_config = {
+let g:surround_obj_objects = {
 \   'a': { 'type': 'block', 'delimiter': ['<', '>'] },
 \   'e': { 'type': 'inline', 'delimiter': '_' },
 \   'r': { 'type': 'block', 'delimiter': ['[', ']'] },

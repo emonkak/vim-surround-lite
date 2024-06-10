@@ -1,4 +1,4 @@
-let g:surround_obj_config = {
+let g:surround_obj_objects = {
 \   'e': { 'type': 'inline', 'delimiter': '_' },
 \   's': {
 \     'type': 'inline',

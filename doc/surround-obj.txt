@@ -35,10 +35,10 @@ can define key mappings as follows:
 	nmap cs  <Plug>(surround-obj-change)
 	nmap ds  <Plug>(surround-obj-delete)
 <
-Also, You can add user-defined surround objects by |g:surround_obj_config| as
+Also, You can add user-defined surround objects by |g:surround_obj_objects| as
 follows:
 >
-	let g:surround_obj_config = {
+	let g:surround_obj_objects = {
 	\   'a': { 'type': 'block', 'delimiter': ['<', '>'] },
 	\   'r': { 'type': 'block', 'delimiter': ['[', ']'] },
 	\   'e': { 'type': 'inline', 'delimiter': '_' },
@@ -103,7 +103,7 @@ INTERFACE					*surround-obj-interface*
 ------------------------------------------------------------------------------
 VARIABLES					*surround-obj-variables*
 
-g:surround_obj_config				*g:surround_obj_config*
+g:surround_obj_objects				*g:surround_obj_objects*
 	A dictionary with the definition of surround object. Its key indicates
 	key strokes for the mapping.
 
@@ -130,7 +130,7 @@ g:surround_obj_config				*g:surround_obj_config*
 
 	Example 1: Double square brackets block, useful in shell script
 >
-	let g:surround_obj_config['R'] = {
+	let g:surround_obj_objects['R'] = {
 	\   'type': 'block',
 	\   'delimiter': ['[[ ', ' ]]'],
 	\   'pattern': ['\[\[\s*', '\s*\]\]'],
@@ -143,7 +143,7 @@ g:surround_obj_config				*g:surround_obj_config*
 	  return ['\begin{' . env . '}', '\end{' . env . '}']
 	endfunction
 
-	let g:surround_obj_config['\']= {
+	let g:surround_obj_objects['\']= {
 	\   'type': 'block',
 	\   'delimiter': function('s:ask_latex_env'),
 	\   'pattern': ['\begin{\h\w*}', '\end{\h\w*}'],
@@ -170,7 +170,7 @@ g:surround_obj_config				*g:surround_obj_config*
 
 	Example: A text between double asterisks for markdown bold text
 >
-	let g:surround_obj_config['E'] = {
+	let g:surround_obj_objects['E'] = {
 	\   'type': 'inline',
 	\   'delimiter': '**',
 	\   'pattern': '\*\*',
@@ -182,7 +182,7 @@ g:surround_obj_config				*g:surround_obj_config*
 
 	Example: Disable the built-in "b" object.
 >
-	let g:surround_obj_config['b'] = {
+	let g:surround_obj_objects['b'] = {
 	\   'type': 'nop',
 	\ }
 <

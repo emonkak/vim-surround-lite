@@ -2,8 +2,8 @@ if exists('g:loaded_surround_obj')
   finish
 endif
 
-if !exists('g:surround_obj_config')
-  let g:surround_obj_config = {}
+if !exists('g:surround_obj_objects')
+  let g:surround_obj_objects = {}
 end
 
 let s:BUILTIN_DEFINITIONS = {
@@ -107,7 +107,7 @@ endfunction
 
 function! s:define_objects() abort
   let loaded_objects = {}
-  let definitions = copy(g:surround_obj_config)
+  let definitions = copy(g:surround_obj_objects)
 
   if !get(g:, 'surround_obj_no_builtin_objects', 0)
     call extend(definitions, s:BUILTIN_DEFINITIONS, 'keep')
